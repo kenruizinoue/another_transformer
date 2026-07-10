@@ -5,6 +5,10 @@
  * react-native-worklets, which needs the native runtime.
  */
 
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
 jest.mock('expo-router', () => {
   const React = require('react');
   return {
