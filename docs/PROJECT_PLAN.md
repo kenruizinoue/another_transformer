@@ -568,8 +568,8 @@ Acceptance criteria:
 | Ticket | Phase | Status |
 | --- | --- | --- |
 | T1 Test runner and smoke test | 1 | Done |
-| T2 Mobile CI workflow | 1 | Not started |
-| T3 App shell and navigation | 1 | Not started |
+| T2 Mobile CI workflow | 1 | Done |
+| T3 App shell and navigation | 1 | Done |
 | T4 Domain types and gateways | 1 | Not started |
 | T5 Storage adapter | 1 | Not started |
 | T6 Audio capture to WAV | 2 | Not started |

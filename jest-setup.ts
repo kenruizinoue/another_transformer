@@ -5,6 +5,22 @@
  * react-native-worklets, which needs the native runtime.
  */
 
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const insets = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { x: 0, y: 0, width: 0, height: 0 };
+  return {
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+    // Strip the `edges` prop so it is not forwarded to a plain View.
+    SafeAreaView: ({ children, edges, ...props }: { children?: React.ReactNode; edges?: unknown }) =>
+      React.createElement(View, props, children),
+    useSafeAreaInsets: () => insets,
+    useSafeAreaFrame: () => frame,
+    initialWindowMetrics: { insets, frame },
+  };
+});
+
 jest.mock('react-native-worklets', () => ({
   scheduleOnRN: (fn: (...args: unknown[]) => unknown, ...args: unknown[]) => fn?.(...args),
   runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
