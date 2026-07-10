@@ -584,7 +584,7 @@ Acceptance criteria:
 | T15 Apple Speech adapter | 4 | Done |
 | T16 Whisper adapter and model download | 4 | Done |
 | T17 Engine router, preference, Settings toggle | 4 | Done |
-| T18 Transcribe action and transcript display | 4 | Not started |
+| T18 Transcribe action and transcript display | 4 | Done |
 | T19 CI for Phase 4 | 4 | Not started |
 | T20 Copy to clipboard | 5 | Not started |
 | T21 Export to PDF | 5 | Not started |

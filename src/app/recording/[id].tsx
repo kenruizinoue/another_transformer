@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
@@ -10,6 +10,7 @@ import { Spacing } from '@/constants/theme';
 import { usePlayback, type Playback } from '@/hooks/use-playback';
 import { useRecording } from '@/hooks/use-recording';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranscribe } from '@/hooks/use-transcribe';
 import type { Recording } from '@/lib/domain';
 
 export default function RecordingDetailScreen() {
@@ -65,9 +66,11 @@ function DetailContent({
 }) {
   const theme = useTheme();
   const draftTitle = useRef(recording.title);
+  const { status: transcribeStatus, transcript, run } = useTranscribe();
+  const shownTranscript = transcript ?? recording.transcript ?? null;
 
   return (
-    <ThemedView style={styles.content} testID="detail-loaded">
+    <ScrollView contentContainerStyle={styles.content} testID="detail-loaded">
       <TextInput
         testID="rename-input"
         defaultValue={recording.title}
@@ -93,10 +96,40 @@ function DetailContent({
         onSeek={playback.seekTo}
       />
 
+      <ThemedView style={styles.transcriptSection}>
+        <Pressable
+          testID="transcribe"
+          onPress={() => run(recording)}
+          disabled={transcribeStatus === 'transcribing'}
+          style={styles.transcribeButton}>
+          <ThemedText type="smallBold">
+            {shownTranscript ? 'Transcribe again' : 'Transcribe'}
+          </ThemedText>
+        </Pressable>
+
+        {transcribeStatus === 'transcribing' && (
+          <ThemedView style={styles.transcriptState} testID="transcribing">
+            <ActivityIndicator />
+          </ThemedView>
+        )}
+
+        {transcribeStatus === 'error' && (
+          <ThemedText type="small" themeColor="textSecondary" testID="transcribe-error">
+            Could not transcribe. Check your engine in Settings and try again.
+          </ThemedText>
+        )}
+
+        {shownTranscript && (
+          <ThemedText type="default" testID="transcript" style={styles.transcript}>
+            {shownTranscript}
+          </ThemedText>
+        )}
+      </ThemedView>
+
       <Pressable testID="delete" onPress={onDelete} style={styles.deleteButton}>
         <ThemedText type="smallBold">Delete recording</ThemedText>
       </Pressable>
-    </ThemedView>
+    </ScrollView>
   );
 }
 
@@ -116,6 +149,23 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: Spacing.three,
+    paddingBottom: Spacing.six,
+  },
+  transcriptSection: {
+    gap: Spacing.two,
+  },
+  transcribeButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    borderRadius: Spacing.five,
+    backgroundColor: '#3c87f7',
+  },
+  transcriptState: {
+    paddingVertical: Spacing.two,
+  },
+  transcript: {
+    lineHeight: 24,
   },
   titleInput: {
     fontSize: 20,

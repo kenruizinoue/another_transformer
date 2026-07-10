@@ -3,6 +3,8 @@ import type { ReactElement, ReactNode } from 'react';
 
 import type { Recording, RecordingStore } from '@/lib/domain';
 import { RecordingStoreProvider } from '@/lib/store-context';
+import { TranscriptionProvider, type TranscriberRouter } from '@/lib/transcription-context';
+import type { TranscriptionResult } from '@/lib/transcription/router';
 
 /** A RecordingStore of jest mocks; override individual methods per test. */
 export function makeFakeStore(overrides: Partial<RecordingStore> = {}): RecordingStore {
@@ -36,4 +38,24 @@ export function withStore(store: RecordingStore) {
 
 export function renderWithStore(ui: ReactElement, store: RecordingStore = makeFakeStore()) {
   return render(<RecordingStoreProvider store={store}>{ui}</RecordingStoreProvider>);
+}
+
+export function makeFakeRouter(
+  result: TranscriptionResult = { text: null, engine: null },
+): TranscriberRouter {
+  return { transcribe: jest.fn().mockResolvedValue(result) };
+}
+
+export function renderWithProviders(
+  ui: ReactElement,
+  {
+    store = makeFakeStore(),
+    router = makeFakeRouter(),
+  }: { store?: RecordingStore; router?: TranscriberRouter } = {},
+) {
+  return render(
+    <RecordingStoreProvider store={store}>
+      <TranscriptionProvider router={router}>{ui}</TranscriptionProvider>
+    </RecordingStoreProvider>,
+  );
 }
