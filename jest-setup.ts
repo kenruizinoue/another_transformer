@@ -5,6 +5,23 @@
  * react-native-worklets, which needs the native runtime.
  */
 
+jest.mock('expo-router', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    // asChild passes props to the single child; for tests, render the child.
+    Link: ({ children }: { children: React.ReactNode }) => children,
+    useRouter: () => ({
+      push: jest.fn(),
+      back: jest.fn(),
+      replace: jest.fn(),
+      navigate: jest.fn(),
+    }),
+    Redirect: () => null,
+    useLocalSearchParams: () => ({}),
+  };
+});
+
 jest.mock('react-native-safe-area-context', () => {
   const React = require('react');
   const { View } = require('react-native');

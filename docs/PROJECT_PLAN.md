@@ -574,7 +574,7 @@ Acceptance criteria:
 | T5 Storage adapter | 1 | Done |
 | T6 Audio capture to WAV | 2 | Done |
 | T7 Background and locked recording | 2 | Done |
-| T8 Microphone permission and record UI | 2 | Not started |
+| T8 Microphone permission and record UI | 2 | Done |
 | T9 CI for Phase 2 | 2 | Not started |
 | T10 Recordings list | 3 | Not started |
 | T11 Playback | 3 | Not started |

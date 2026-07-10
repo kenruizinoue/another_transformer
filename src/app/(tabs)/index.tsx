@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Link } from 'expo-router';
+import { Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -27,6 +28,12 @@ export default function RecordingsScreen() {
             play back and transcribe.
           </ThemedText>
         </ThemedView>
+
+        <Link href="/record" asChild>
+          <Pressable testID="new-recording" style={styles.recordButton}>
+            <ThemedText type="smallBold">Record</ThemedText>
+          </Pressable>
+        </Link>
       </SafeAreaView>
     </ThemedView>
   );
@@ -56,5 +63,13 @@ const styles = StyleSheet.create({
   emptyHint: {
     textAlign: 'center',
     maxWidth: 320,
+  },
+  recordButton: {
+    alignSelf: 'center',
+    marginBottom: Spacing.four,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.six,
+    borderRadius: Spacing.five,
+    backgroundColor: '#e5484d',
   },
 });

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react-native';
 
-import HomeScreen from '../index';
+import HomeScreen from '../(tabs)/index';
 
 describe('app smoke test', () => {
   it('renders the home screen without crashing', async () => {

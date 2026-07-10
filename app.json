@@ -36,7 +36,12 @@
           "imageWidth": 76
         }
       ],
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow another_transformer to access your microphone to record audio."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
