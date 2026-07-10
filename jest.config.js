@@ -6,6 +6,9 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
+  // Reset mock call history between tests so shared mocks (expo-audio, slider)
+  // stay isolated and CI runs deterministically.
+  clearMocks: true,
   moduleNameMapper: {
     // CSS (global.css / NativeWind) has no meaning under the native Jest env.
     // Must come before the @/ alias so @/global.css maps to the stub, not src.
