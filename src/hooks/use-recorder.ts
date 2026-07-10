@@ -1,6 +1,7 @@
-import { setAudioModeAsync, useAudioRecorder } from 'expo-audio';
+import { useAudioRecorder } from 'expo-audio';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { configureRecordingAudioSession } from '@/lib/audio/audio-session';
 import { WAV_16K_MONO } from '@/lib/audio/recording-options';
 import type { Recording, RecordingStore } from '@/lib/domain';
 
@@ -41,7 +42,7 @@ export function useRecorder(store: RecordingStore, options: UseRecorderOptions =
 
   const start = useCallback(async () => {
     if (isRecording) return;
-    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+    await configureRecordingAudioSession();
     await recorder.prepareToRecordAsync();
     recorder.record();
     startedAtRef.current = now();
