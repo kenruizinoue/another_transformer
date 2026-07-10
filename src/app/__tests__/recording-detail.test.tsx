@@ -8,6 +8,8 @@ jest.mock('expo-router', () => ({
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 import {
   makeFakeRouter,
@@ -109,5 +111,24 @@ describe('RecordingDetailScreen', () => {
 
     await screen.findByTestId('detail-loaded');
     expect(screen.queryByTestId('copy')).toBeNull();
+  });
+
+  it('exports the transcript to a PDF and shares it', async () => {
+    const recording = makeRecording({ id: 'r1', transcript: 'exported transcript' });
+    const store = makeFakeStore({ get: jest.fn().mockResolvedValue(recording) });
+    await renderWithProviders(<RecordingDetailScreen />, { store });
+
+    await screen.findByTestId('detail-loaded');
+    await fireEvent.press(screen.getByTestId('export-pdf'));
+
+    await waitFor(() => expect(Print.printToFileAsync).toHaveBeenCalled());
+    const html = (Print.printToFileAsync as jest.Mock).mock.calls[0][0].html as string;
+    expect(html).toContain('exported transcript');
+    await waitFor(() =>
+      expect(Sharing.shareAsync).toHaveBeenCalledWith(
+        'file:///tmp/transcript.pdf',
+        expect.objectContaining({ mimeType: 'application/pdf' }),
+      ),
+    );
   });
 });

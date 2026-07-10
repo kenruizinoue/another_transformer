@@ -8,6 +8,7 @@ import { AudioPlayer } from '@/components/audio-player';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useExportPdf } from '@/hooks/use-export-pdf';
 import { usePlayback, type Playback } from '@/hooks/use-playback';
 import { useRecording } from '@/hooks/use-recording';
 import { useTheme } from '@/hooks/use-theme';
@@ -70,11 +71,16 @@ function DetailContent({
   const { status: transcribeStatus, transcript, run } = useTranscribe();
   const shownTranscript = transcript ?? recording.transcript ?? null;
   const [copied, setCopied] = useState(false);
+  const { run: exportPdf, status: exportStatus } = useExportPdf();
 
   const onCopy = async () => {
     if (!shownTranscript) return;
     await Clipboard.setStringAsync(shownTranscript);
     setCopied(true);
+  };
+
+  const onExport = () => {
+    exportPdf({ ...recording, transcript: shownTranscript ?? undefined });
   };
 
   return (
@@ -135,6 +141,13 @@ function DetailContent({
             <View style={styles.exportRow}>
               <Pressable testID="copy" onPress={onCopy} style={styles.exportButton}>
                 <ThemedText type="smallBold">{copied ? 'Copied' : 'Copy'}</ThemedText>
+              </Pressable>
+              <Pressable
+                testID="export-pdf"
+                onPress={onExport}
+                disabled={exportStatus === 'exporting'}
+                style={styles.exportButton}>
+                <ThemedText type="smallBold">Export PDF</ThemedText>
               </Pressable>
             </View>
           </>
