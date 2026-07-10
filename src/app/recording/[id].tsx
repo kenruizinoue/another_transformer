@@ -1,6 +1,7 @@
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
@@ -68,6 +69,13 @@ function DetailContent({
   const draftTitle = useRef(recording.title);
   const { status: transcribeStatus, transcript, run } = useTranscribe();
   const shownTranscript = transcript ?? recording.transcript ?? null;
+  const [copied, setCopied] = useState(false);
+
+  const onCopy = async () => {
+    if (!shownTranscript) return;
+    await Clipboard.setStringAsync(shownTranscript);
+    setCopied(true);
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.content} testID="detail-loaded">
@@ -120,9 +128,16 @@ function DetailContent({
         )}
 
         {shownTranscript && (
-          <ThemedText type="default" testID="transcript" style={styles.transcript}>
-            {shownTranscript}
-          </ThemedText>
+          <>
+            <ThemedText type="default" testID="transcript" style={styles.transcript}>
+              {shownTranscript}
+            </ThemedText>
+            <View style={styles.exportRow}>
+              <Pressable testID="copy" onPress={onCopy} style={styles.exportButton}>
+                <ThemedText type="smallBold">{copied ? 'Copied' : 'Copy'}</ThemedText>
+              </Pressable>
+            </View>
+          </>
         )}
       </ThemedView>
 
@@ -166,6 +181,16 @@ const styles = StyleSheet.create({
   },
   transcript: {
     lineHeight: 24,
+  },
+  exportRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  exportButton: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    borderRadius: Spacing.five,
+    backgroundColor: '#3c87f7',
   },
   titleInput: {
     fontSize: 20,

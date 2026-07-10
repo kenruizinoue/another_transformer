@@ -7,6 +7,7 @@ jest.mock('expo-router', () => ({
 }));
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import * as Clipboard from 'expo-clipboard';
 
 import {
   makeFakeRouter,
@@ -88,5 +89,25 @@ describe('RecordingDetailScreen', () => {
 
     expect(await screen.findByTestId('transcribe-error')).toBeTruthy();
     expect(store.setTranscript).not.toHaveBeenCalled();
+  });
+
+  it('copies an existing transcript to the clipboard', async () => {
+    const recording = makeRecording({ id: 'r1', transcript: 'meeting notes here' });
+    const store = makeFakeStore({ get: jest.fn().mockResolvedValue(recording) });
+    await renderWithProviders(<RecordingDetailScreen />, { store });
+
+    await screen.findByTestId('detail-loaded');
+    await fireEvent.press(screen.getByTestId('copy'));
+
+    expect(Clipboard.setStringAsync).toHaveBeenCalledWith('meeting notes here');
+    expect(await screen.findByText('Copied')).toBeTruthy();
+  });
+
+  it('offers no copy action when there is no transcript', async () => {
+    const store = storeWithRecording();
+    await renderWithProviders(<RecordingDetailScreen />, { store });
+
+    await screen.findByTestId('detail-loaded');
+    expect(screen.queryByTestId('copy')).toBeNull();
   });
 });

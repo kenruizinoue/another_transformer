@@ -586,7 +586,7 @@ Acceptance criteria:
 | T17 Engine router, preference, Settings toggle | 4 | Done |
 | T18 Transcribe action and transcript display | 4 | Done |
 | T19 CI for Phase 4 | 4 | Done |
-| T20 Copy to clipboard | 5 | Not started |
+| T20 Copy to clipboard | 5 | Done |
 | T21 Export to PDF | 5 | Not started |
 | T22 CI for Phase 5 | 5 | Not started |
 | T23 Detox end-to-end flow | 6 | Not started (final ticket, tested with user) |
