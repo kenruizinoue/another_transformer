@@ -588,5 +588,5 @@ Acceptance criteria:
 | T19 CI for Phase 4 | 4 | Done |
 | T20 Copy to clipboard | 5 | Done |
 | T21 Export to PDF | 5 | Done |
-| T22 CI for Phase 5 | 5 | Not started |
+| T22 CI for Phase 5 | 5 | Done |
 | T23 Detox end-to-end flow | 6 | Not started (final ticket, tested with user) |
