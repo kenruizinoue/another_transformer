@@ -582,7 +582,7 @@ Acceptance criteria:
 | T13 CI for Phase 3 | 3 | Done |
 | T14 Env config and OpenAI adapter | 4 | Done |
 | T15 Apple Speech adapter | 4 | Done |
-| T16 Whisper adapter and model download | 4 | Not started |
+| T16 Whisper adapter and model download | 4 | Done |
 | T17 Engine router, preference, Settings toggle | 4 | Not started |
 | T18 Transcribe action and transcript display | 4 | Not started |
 | T19 CI for Phase 4 | 4 | Not started |

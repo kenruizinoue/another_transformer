@@ -17,5 +17,7 @@ module.exports = {
     // more specific @/assets rule must precede the general @/ -> src rule.
     '^@/assets/(.*)$': '<rootDir>/assets/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
+    // whisper.rn 0.6 omits the root "." export, so resolve the bare import here.
+    '^whisper\\.rn$': '<rootDir>/node_modules/whisper.rn/lib/commonjs/index.js',
   },
 };
