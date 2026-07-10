@@ -33,7 +33,7 @@ src/hooks/           # stateful workflow logic
 src/lib/domain/      # types and gateway interfaces
 src/lib/adapters/    # storage, native, and HTTP implementations
 src/lib/utils/       # pure helpers + unit tests
-.maestro/            # E2E flows (added late, only when approved)
+e2e/                 # Detox E2E flows (added last, local only, never in CI)
 ```
 
 Native configuration (background audio mode, microphone and speech permissions)
@@ -59,10 +59,12 @@ npx tsc --noEmit      # typecheck
 npm run lint          # eslint-config-expo
 # Manual, native features (background recording, on-device STT): dev build on a
 # device or simulator via `npx expo run:ios` or an EAS development build.
-npm run e2e           # Maestro; only after E2E is approved and added
+npm run e2e           # Detox; runs locally only, never in CI
 ```
 
-A phase is not done until its CI is green on `master`.
+CI runs only unit and integration tests that need no device instrumentation.
+E2E (Detox) runs locally only and is never added to CI. A phase is not done
+until its CI is green on `master`.
 
 ---
 
@@ -535,20 +537,19 @@ Acceptance criteria:
 
 ---
 
-## Phase 6 - E2E (planned, not implemented until approved)
+## Phase 6 - E2E (local only, tested together with the user)
 
-### Ticket 23 - Maestro end-to-end flow
+### Ticket 23 - Detox end-to-end flow
 
 Objective:
 
-- Maestro flows in `.maestro/` covering record, save, play, transcribe, and
-  export.
+- Detox setup and an end-to-end flow in `e2e/` covering record, save, play,
+  transcribe, and export.
 
 TDD work:
 
-- Do not implement automatically. Per `standards/react-native.md`, build E2E only
-  when the user confirms the UI and workflow are stable enough to lock, and add
-  it to CI only once approved. Mock external network where possible.
+- This is the last ticket. Set up Detox and the primary flow, then stop for the
+  user to run it together. E2E runs locally only and is never added to CI.
 
 Edge cases:
 
@@ -557,7 +558,8 @@ Edge cases:
 
 Acceptance criteria:
 
-- On approval only: the primary flow passes with Maestro and is added to CI.
+- Detox is configured and the primary flow is authored and runnable locally.
+  Not added to CI.
 
 ---
 
@@ -565,7 +567,7 @@ Acceptance criteria:
 
 | Ticket | Phase | Status |
 | --- | --- | --- |
-| T1 Test runner and smoke test | 1 | Not started |
+| T1 Test runner and smoke test | 1 | Done |
 | T2 Mobile CI workflow | 1 | Not started |
 | T3 App shell and navigation | 1 | Not started |
 | T4 Domain types and gateways | 1 | Not started |
@@ -587,4 +589,4 @@ Acceptance criteria:
 | T20 Copy to clipboard | 5 | Not started |
 | T21 Export to PDF | 5 | Not started |
 | T22 CI for Phase 5 | 5 | Not started |
-| T23 Maestro end-to-end flow | 6 | Not started (needs approval) |
+| T23 Detox end-to-end flow | 6 | Not started (final ticket, tested with user) |
