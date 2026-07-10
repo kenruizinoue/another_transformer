@@ -1,17 +1,16 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { RecordingRow } from '@/components/recording-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useRecordings } from '@/hooks/use-recordings';
 
-/**
- * Home screen: the list of saved recordings. Real data is wired in a later
- * ticket; for now it shows the empty state so the first screen is the usable
- * app rather than a splash or marketing screen.
- */
 export default function RecordingsScreen() {
+  const { status, recordings, reload } = useRecordings();
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -19,15 +18,44 @@ export default function RecordingsScreen() {
           Recordings
         </ThemedText>
 
-        <ThemedView style={styles.emptyState} testID="recordings-empty">
-          <ThemedText type="default" style={styles.emptyTitle}>
-            No recordings yet
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.emptyHint}>
-            Record audio to get started. Your recordings will appear here, ready to
-            play back and transcribe.
-          </ThemedText>
-        </ThemedView>
+        {status === 'loading' && (
+          <ThemedView style={styles.centered} testID="recordings-loading">
+            <ActivityIndicator />
+          </ThemedView>
+        )}
+
+        {status === 'error' && (
+          <ThemedView style={styles.centered} testID="recordings-error">
+            <ThemedText type="default" style={styles.emptyTitle}>
+              Could not load recordings
+            </ThemedText>
+            <Pressable testID="recordings-retry" onPress={reload} style={styles.retryButton}>
+              <ThemedText type="smallBold">Try again</ThemedText>
+            </Pressable>
+          </ThemedView>
+        )}
+
+        {status === 'loaded' && recordings.length === 0 && (
+          <ThemedView style={styles.centered} testID="recordings-empty">
+            <ThemedText type="default" style={styles.emptyTitle}>
+              No recordings yet
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.emptyHint}>
+              Record audio to get started. Your recordings will appear here, ready to
+              play back and transcribe.
+            </ThemedText>
+          </ThemedView>
+        )}
+
+        {status === 'loaded' && recordings.length > 0 && (
+          <FlatList
+            testID="recordings-list"
+            data={recordings}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <RecordingRow recording={item} />}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
 
         <Link href="/record" asChild>
           <Pressable testID="new-recording" style={styles.recordButton}>
@@ -51,7 +79,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.four,
     paddingBottom: Spacing.three,
   },
-  emptyState: {
+  centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -63,6 +91,16 @@ const styles = StyleSheet.create({
   emptyHint: {
     textAlign: 'center',
     maxWidth: 320,
+  },
+  listContent: {
+    gap: Spacing.two,
+    paddingBottom: Spacing.three,
+  },
+  retryButton: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    borderRadius: Spacing.five,
+    backgroundColor: '#3c87f7',
   },
   recordButton: {
     alignSelf: 'center',
