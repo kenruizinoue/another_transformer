@@ -13,9 +13,30 @@ const recorder = {
 
 const grantedPermission = { granted: true, canAskAgain: false, status: 'granted' };
 
+const player = {
+  play: jest.fn(),
+  pause: jest.fn(),
+  seekTo: jest.fn().mockResolvedValue(undefined),
+  remove: jest.fn(),
+  playing: false,
+  currentTime: 0,
+  duration: 0,
+};
+
+const playerStatus = {
+  playing: false,
+  currentTime: 0,
+  duration: 0,
+  didJustFinish: false,
+  isBuffering: false,
+  isLoaded: true,
+};
+
 module.exports = {
   __esModule: true,
   useAudioRecorder: () => recorder,
+  useAudioPlayer: () => player,
+  useAudioPlayerStatus: () => playerStatus,
   setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
   getRecordingPermissionsAsync: jest.fn().mockResolvedValue(grantedPermission),
   requestRecordingPermissionsAsync: jest.fn().mockResolvedValue(grantedPermission),

@@ -577,7 +577,7 @@ Acceptance criteria:
 | T8 Microphone permission and record UI | 2 | Done |
 | T9 CI for Phase 2 | 2 | Done |
 | T10 Recordings list | 3 | Done |
-| T11 Playback | 3 | Not started |
+| T11 Playback | 3 | Done |
 | T12 Rename and delete | 3 | Not started |
 | T13 CI for Phase 3 | 3 | Not started |
 | T14 Env config and OpenAI adapter | 4 | Not started |

@@ -12,6 +12,7 @@ export default function RootLayout() {
           name="record"
           options={{ presentation: 'modal', title: 'Record' }}
         />
+        <Stack.Screen name="recording/[id]" options={{ title: 'Recording' }} />
       </Stack>
     </ThemeProvider>
   );

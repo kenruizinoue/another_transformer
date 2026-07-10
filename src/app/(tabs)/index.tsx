@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ import { Spacing } from '@/constants/theme';
 import { useRecordings } from '@/hooks/use-recordings';
 
 export default function RecordingsScreen() {
+  const router = useRouter();
   const { status, recordings, reload } = useRecordings();
 
   return (
@@ -52,7 +53,12 @@ export default function RecordingsScreen() {
             testID="recordings-list"
             data={recordings}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <RecordingRow recording={item} />}
+            renderItem={({ item }) => (
+              <RecordingRow
+                recording={item}
+                onPress={() => router.push(`/recording/${item.id}`)}
+              />
+            )}
             contentContainerStyle={styles.listContent}
           />
         )}
