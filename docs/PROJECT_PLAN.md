@@ -570,7 +570,7 @@ Acceptance criteria:
 | T1 Test runner and smoke test | 1 | Done |
 | T2 Mobile CI workflow | 1 | Done |
 | T3 App shell and navigation | 1 | Done |
-| T4 Domain types and gateways | 1 | Not started |
+| T4 Domain types and gateways | 1 | Done |
 | T5 Storage adapter | 1 | Not started |
 | T6 Audio capture to WAV | 2 | Not started |
 | T7 Background and locked recording | 2 | Not started |
