@@ -8,6 +8,10 @@ export function useColorScheme() {
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
+    // Intentional: flip the hydration flag once, after mount, so web static
+    // rendering returns a stable value on the server and the real scheme on the
+    // client. This is a one-shot hydration guard, not a render loop.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasHydrated(true);
   }, []);
 
