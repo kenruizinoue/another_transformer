@@ -10,7 +10,9 @@
     "ios": {
       "icon": "./assets/expo.icon",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -40,6 +42,12 @@
         "expo-audio",
         {
           "microphonePermission": "Allow another_transformer to access your microphone to record audio."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "speechRecognitionPermission": "Allow another_transformer to use speech recognition to transcribe your recordings on device."
         }
       ]
     ],
