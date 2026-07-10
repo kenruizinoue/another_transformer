@@ -32,7 +32,7 @@ describe('AudioPlayer', () => {
     );
 
     expect(screen.getByText('Pause')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('player-toggle'));
+    await fireEvent.press(screen.getByTestId('player-toggle'));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 });

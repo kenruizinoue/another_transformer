@@ -1,18 +1,28 @@
-import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { usePlayback } from '@/hooks/use-playback';
+import { usePlayback, type Playback } from '@/hooks/use-playback';
 import { useRecording } from '@/hooks/use-recording';
+import { useTheme } from '@/hooks/use-theme';
+import type { Recording } from '@/lib/domain';
 
 export default function RecordingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { status, recording } = useRecording(id);
+  const router = useRouter();
+  const { status, recording, rename, remove } = useRecording(id);
   const playback = usePlayback(recording?.fileUri ?? null);
+
+  const onDelete = async () => {
+    playback.pause();
+    await remove();
+    router.back();
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -30,20 +40,62 @@ export default function RecordingDetailScreen() {
         )}
 
         {status === 'loaded' && recording && (
-          <ThemedView style={styles.content} testID="detail-loaded">
-            <ThemedText type="subtitle" numberOfLines={2}>
-              {recording.title}
-            </ThemedText>
-            <AudioPlayer
-              isPlaying={playback.isPlaying}
-              positionMs={playback.positionMs}
-              durationMs={recording.durationMs || playback.durationMs}
-              onToggle={playback.toggle}
-              onSeek={playback.seekTo}
-            />
-          </ThemedView>
+          <DetailContent
+            recording={recording}
+            playback={playback}
+            onRename={rename}
+            onDelete={onDelete}
+          />
         )}
       </SafeAreaView>
+    </ThemedView>
+  );
+}
+
+function DetailContent({
+  recording,
+  playback,
+  onRename,
+  onDelete,
+}: {
+  recording: Recording;
+  playback: Playback;
+  onRename: (title: string) => Promise<boolean>;
+  onDelete: () => void;
+}) {
+  const theme = useTheme();
+  const draftTitle = useRef(recording.title);
+
+  return (
+    <ThemedView style={styles.content} testID="detail-loaded">
+      <TextInput
+        testID="rename-input"
+        defaultValue={recording.title}
+        onChangeText={(text) => {
+          draftTitle.current = text;
+        }}
+        style={[styles.titleInput, { color: theme.text, borderColor: theme.backgroundElement }]}
+        placeholder="Recording title"
+        placeholderTextColor={theme.textSecondary}
+      />
+      <Pressable
+        testID="rename-save"
+        onPress={() => onRename(draftTitle.current)}
+        style={styles.saveButton}>
+        <ThemedText type="smallBold">Save name</ThemedText>
+      </Pressable>
+
+      <AudioPlayer
+        isPlaying={playback.isPlaying}
+        positionMs={playback.positionMs}
+        durationMs={recording.durationMs || playback.durationMs}
+        onToggle={playback.toggle}
+        onSeek={playback.seekTo}
+      />
+
+      <Pressable testID="delete" onPress={onDelete} style={styles.deleteButton}>
+        <ThemedText type="smallBold">Delete recording</ThemedText>
+      </Pressable>
     </ThemedView>
   );
 }
@@ -63,6 +115,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    gap: Spacing.four,
+    gap: Spacing.three,
+  },
+  titleInput: {
+    fontSize: 20,
+    fontWeight: '600',
+    borderWidth: 1,
+    borderRadius: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+  saveButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.four,
+    borderRadius: Spacing.five,
+    backgroundColor: '#3c87f7',
+  },
+  deleteButton: {
+    alignSelf: 'center',
+    marginTop: Spacing.four,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.five,
+    borderRadius: Spacing.five,
+    backgroundColor: '#e5484d',
   },
 });

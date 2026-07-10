@@ -7,6 +7,7 @@ export type Playback = {
   durationMs: number;
   error: boolean;
   toggle: () => void;
+  pause: () => void;
   seekTo: (ms: number) => void;
 };
 
@@ -42,6 +43,14 @@ export function usePlayback(uri: string | null): Playback {
     }
   }, [isPlaying, player]);
 
+  const pause = useCallback(() => {
+    try {
+      player.pause();
+    } catch {
+      setError(true);
+    }
+  }, [player]);
+
   const seekTo = useCallback(
     (ms: number) => {
       try {
@@ -53,5 +62,5 @@ export function usePlayback(uri: string | null): Playback {
     [player],
   );
 
-  return { isPlaying, positionMs, durationMs, error, toggle, seekTo };
+  return { isPlaying, positionMs, durationMs, error, toggle, pause, seekTo };
 }
