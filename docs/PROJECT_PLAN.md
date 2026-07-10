@@ -571,7 +571,7 @@ Acceptance criteria:
 | T2 Mobile CI workflow | 1 | Done |
 | T3 App shell and navigation | 1 | Done |
 | T4 Domain types and gateways | 1 | Done |
-| T5 Storage adapter | 1 | Not started |
+| T5 Storage adapter | 1 | Done |
 | T6 Audio capture to WAV | 2 | Not started |
 | T7 Background and locked recording | 2 | Not started |
 | T8 Microphone permission and record UI | 2 | Not started |
