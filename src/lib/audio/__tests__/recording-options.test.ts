@@ -1,21 +1,6 @@
 import { WAV_16K_MONO } from '../recording-options';
 
-// jest hoists this mock above the import at runtime.
-jest.mock('expo-audio', () => ({
-  RecordingPresets: {
-    HIGH_QUALITY: {
-      extension: '.m4a',
-      sampleRate: 44_100,
-      numberOfChannels: 2,
-      bitRate: 128_000,
-      ios: { audioQuality: 96 },
-      android: {},
-      web: {},
-    },
-  },
-  IOSOutputFormat: { LINEARPCM: 'lpcm' },
-  AudioQuality: { HIGH: 96 },
-}));
+// expo-audio is auto-mocked from __mocks__/expo-audio.js.
 
 describe('WAV_16K_MONO', () => {
   it('captures 16 kHz mono WAV', () => {

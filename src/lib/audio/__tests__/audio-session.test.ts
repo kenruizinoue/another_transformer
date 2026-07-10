@@ -1,6 +1,6 @@
 import { buildRecordingAudioMode } from '../audio-session';
 
-jest.mock('expo-audio', () => ({ setAudioModeAsync: jest.fn() }));
+// expo-audio is auto-mocked from __mocks__/expo-audio.js.
 
 describe('buildRecordingAudioMode', () => {
   it('keeps recording alive in the background and while locked', () => {
