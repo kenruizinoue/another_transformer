@@ -580,7 +580,7 @@ Acceptance criteria:
 | T11 Playback | 3 | Done |
 | T12 Rename and delete | 3 | Done |
 | T13 CI for Phase 3 | 3 | Done |
-| T14 Env config and OpenAI adapter | 4 | Not started |
+| T14 Env config and OpenAI adapter | 4 | Done |
 | T15 Apple Speech adapter | 4 | Not started |
 | T16 Whisper adapter and model download | 4 | Not started |
 | T17 Engine router, preference, Settings toggle | 4 | Not started |
