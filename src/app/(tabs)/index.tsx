@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RecordingRow } from '@/components/recording-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useRecordings } from '@/hooks/use-recordings';
 
 export default function RecordingsScreen() {
@@ -110,7 +110,8 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     alignSelf: 'center',
-    marginBottom: Spacing.four,
+    // Clear the floating native tab bar so the button stays tappable.
+    marginBottom: BottomTabInset + Spacing.four,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.six,
     borderRadius: Spacing.five,

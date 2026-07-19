@@ -9,8 +9,9 @@ module.exports = {
   // Reset mock call history between tests so shared mocks (expo-audio, slider)
   // stay isolated and CI runs deterministically.
   clearMocks: true,
-  // Detox E2E lives in e2e/ and runs locally only, never under Jest/CI.
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/e2e/'],
+  // Maestro E2E flows live in .maestro/ (YAML, local only); nothing there is a
+  // Jest test, so only node_modules needs excluding.
+  testPathIgnorePatterns: ['/node_modules/'],
   moduleNameMapper: {
     // CSS (global.css / NativeWind) has no meaning under the native Jest env.
     // Must come before the @/ alias so @/global.css maps to the stub, not src.

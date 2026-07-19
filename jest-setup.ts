@@ -23,6 +23,10 @@ jest.mock('expo-router', () => {
     }),
     Redirect: () => null,
     useLocalSearchParams: () => ({}),
+    // Focus == mount in the test environment.
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      React.useEffect(callback, [callback]);
+    },
   };
 });
 

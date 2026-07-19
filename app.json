@@ -59,8 +59,7 @@
           "speechRecognitionPermission": "Allow another_transformer to use speech recognition to transcribe your recordings on device."
         }
       ],
-      "expo-sharing",
-      "@config-plugins/detox"
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

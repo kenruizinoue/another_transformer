@@ -33,7 +33,7 @@ src/hooks/           # stateful workflow logic
 src/lib/domain/      # types and gateway interfaces
 src/lib/adapters/    # storage, native, and HTTP implementations
 src/lib/utils/       # pure helpers + unit tests
-e2e/                 # Detox E2E flows (added last, local only, never in CI)
+.maestro/            # Maestro E2E flows (added last, local only, never in CI)
 ```
 
 Native configuration (background audio mode, microphone and speech permissions)
@@ -59,11 +59,11 @@ npx tsc --noEmit      # typecheck
 npm run lint          # eslint-config-expo
 # Manual, native features (background recording, on-device STT): dev build on a
 # device or simulator via `npx expo run:ios` or an EAS development build.
-npm run e2e           # Detox; runs locally only, never in CI
+npm run e2e           # Maestro; runs locally only, never in CI
 ```
 
 CI runs only unit and integration tests that need no device instrumentation.
-E2E (Detox) runs locally only and is never added to CI. A phase is not done
+E2E (Maestro) runs locally only and is never added to CI. A phase is not done
 until its CI is green on `master`.
 
 ---
@@ -539,27 +539,31 @@ Acceptance criteria:
 
 ## Phase 6 - E2E (local only, tested together with the user)
 
-### Ticket 23 - Detox end-to-end flow
+### Ticket 23 - Maestro end-to-end flow
 
 Objective:
 
-- Detox setup and an end-to-end flow in `e2e/` covering record, save, play,
-  transcribe, and export.
+- Maestro flows in `.maestro/` covering record, save, play, transcribe, and
+  export. Maestro is black-box (no native integration), so it stays decoupled
+  from the Expo SDK version. Detox was tried first and reverted: its config
+  plugin targets Expo 53 and ships no native harness usable on Expo 57 / RN 0.86.
 
 TDD work:
 
-- This is the last ticket. Set up Detox and the primary flow, then stop for the
-  user to run it together. E2E runs locally only and is never added to CI.
+- This is the last ticket. Author the primary flow (simulator-safe) and a
+  transcription flow (physical device, real microphone), then run them with the
+  user. E2E runs locally only and is never added to CI.
 
 Edge cases:
 
 - Cover the primary happy path first; add failure paths after the happy path is
-  stable.
+  stable. On-device speech recognition needs real hardware, so the transcript
+  assertion runs on a physical device.
 
 Acceptance criteria:
 
-- Detox is configured and the primary flow is authored and runnable locally.
-  Not added to CI.
+- Maestro flows are authored and the primary flow passes locally against the
+  simulator build. Not added to CI.
 
 ---
 
@@ -589,4 +593,4 @@ Acceptance criteria:
 | T20 Copy to clipboard | 5 | Done |
 | T21 Export to PDF | 5 | Done |
 | T22 CI for Phase 5 | 5 | Done |
-| T23 Detox end-to-end flow | 6 | Set up (run locally together) |
+| T23 Maestro end-to-end flow | 6 | Set up (run locally together) |

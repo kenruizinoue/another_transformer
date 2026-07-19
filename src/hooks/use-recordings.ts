@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 
 import type { Recording } from '@/lib/domain';
 import { useRecordingStore } from '@/lib/store-context';
@@ -30,11 +31,13 @@ export function useRecordings(): UseRecordings {
     }
   }, [store]);
 
-  useEffect(() => {
-    // Load once on mount; state is set after the async list resolves.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    load();
-  }, [load]);
+  // Reload whenever the screen gains focus (including first mount), so a
+  // recording saved on another screen appears when navigating back.
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   return { status, recordings, reload: load };
 }

@@ -1,0 +1,50 @@
+# Transcription E2E: record, open, transcribe, and see real text. Run this on a
+# physical device (`maestro test --device <udid> .maestro/transcribe-flow.yaml`):
+# on-device speech recognition needs real hardware, so on the simulator the
+# transcribe step surfaces the error path instead of text. Local only, never CI.
+appId: com.kenruizinoue.another-transformer
+tags:
+  - device-only
+---
+- launchApp:
+    permissions:
+      all: allow
+
+- assertVisible: "Recordings"
+- tapOn:
+    id: "new-recording"
+- assertVisible:
+    id: "record-ready"
+- tapOn:
+    id: "record-toggle"
+# speak while this runs; ~5 seconds of audio
+- extendedWaitUntil:
+    visible: "0:05"
+    timeout: 15000
+- tapOn:
+    id: "record-toggle"
+
+- extendedWaitUntil:
+    visible:
+      id: "recordings-list"
+    timeout: 10000
+- tapOn:
+    id: "recording-row-.*"
+- extendedWaitUntil:
+    visible:
+      id: "detail-loaded"
+    timeout: 10000
+
+# Transcribe with the on-device engine and expect real text.
+- tapOn:
+    id: "transcribe"
+- extendedWaitUntil:
+    visible:
+      id: "transcript"
+    timeout: 45000
+
+# The transcript unlocks copy and PDF export.
+- assertVisible:
+    id: "copy"
+- assertVisible:
+    id: "export-pdf"

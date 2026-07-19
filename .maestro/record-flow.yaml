@@ -1,0 +1,49 @@
+# Primary E2E flow: record a clip, see it saved in the list, open it, and see
+# the player. Runs on the iOS simulator and on a physical device. Local only,
+# never in CI.
+appId: com.kenruizinoue.another-transformer
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+
+# Home is the usable app: the Recordings list.
+- assertVisible: "Recordings"
+- assertVisible:
+    id: "recordings-empty"
+
+# Record a short clip via the modal.
+- tapOn:
+    id: "new-recording"
+- assertVisible:
+    id: "record-ready"
+- tapOn:
+    id: "record-toggle"
+- extendedWaitUntil:
+    visible: "Stop"
+    timeout: 5000
+# let it capture ~3 seconds of audio, then stop
+- extendedWaitUntil:
+    visible: "0:03"
+    timeout: 10000
+- tapOn:
+    id: "record-toggle"
+
+# Stopping saves and returns to the list, which now has one row.
+- extendedWaitUntil:
+    visible:
+      id: "recordings-list"
+    timeout: 10000
+
+# Open the recording; the detail screen shows the player and actions.
+- tapOn:
+    id: "recording-row-.*"
+- extendedWaitUntil:
+    visible:
+      id: "detail-loaded"
+    timeout: 10000
+- assertVisible:
+    id: "player-toggle"
+- assertVisible:
+    id: "transcribe"
