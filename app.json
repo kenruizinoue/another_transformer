@@ -12,8 +12,11 @@
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
-        ]
-      }
+        ],
+        "NSSpeechRecognitionUsageDescription": "Allow another_transformer to use speech recognition to transcribe your recordings on device.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone."
+      },
+      "bundleIdentifier": "com.kenruizinoue.another-transformer"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +25,13 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "output": "static",

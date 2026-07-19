@@ -16,9 +16,9 @@ module.exports = {
     'ios.debug': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Debug-iphonesimulator/another_transformer.app',
+        'ios/build/Build/Products/Debug-iphonesimulator/anothertransformer.app',
       build:
-        'xcodebuild -workspace ios/another_transformer.xcworkspace -scheme another_transformer -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/anothertransformer.xcworkspace -scheme anothertransformer -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
   },
   devices: {
