@@ -57,6 +57,7 @@ EAS or local dev build, not Expo Go.
 npm test              # jest-expo + React Native Testing Library
 npx tsc --noEmit      # typecheck
 npm run lint          # eslint-config-expo
+npm run check:boundaries  # native modules only under the adapter layers
 # Manual, native features (background recording, on-device STT): dev build on a
 # device or simulator via `npx expo run:ios` or an EAS development build.
 npm run e2e           # Maestro; runs locally only, never in CI
@@ -843,4 +844,4 @@ Acceptance criteria:
 | T29 CI for Phase 8 | 8 | Done |
 | T30 Recorder gateway | 9 | Done |
 | T31 Player gateway | 9 | Done |
-| T32 CI for Phase 9 | 9 | Not started |
+| T32 CI for Phase 9 | 9 | Done |

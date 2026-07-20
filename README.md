@@ -54,3 +54,13 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Verify
+
+```bash
+npm test                  # unit and integration tests
+npm run typecheck         # tsc --noEmit
+npm run lint              # eslint
+npm run check:boundaries  # native modules only under src/lib/adapters, lib/audio, lib/transcription
+npm run e2e               # Maestro flows; local only, never in CI
+```
