@@ -1,8 +1,9 @@
 import Slider from '@react-native-community/slider';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Accent, Spacing } from '@/constants/theme';
 import { formatDuration } from '@/lib/utils/format-duration';
 
 export type AudioPlayerProps = {
@@ -26,7 +27,7 @@ export function AudioPlayer({ isPlaying, positionMs, durationMs, onToggle, onSee
         maximumValue={Math.max(durationMs, 1)}
         value={Math.min(positionMs, durationMs)}
         onSlidingComplete={onSeek}
-        minimumTrackTintColor="#3c87f7"
+        minimumTrackTintColor={Accent.primary}
       />
       <View style={styles.times}>
         <ThemedText type="small" themeColor="textSecondary">
@@ -36,9 +37,12 @@ export function AudioPlayer({ isPlaying, positionMs, durationMs, onToggle, onSee
           {formatDuration(durationMs)}
         </ThemedText>
       </View>
-      <Pressable testID="player-toggle" onPress={onToggle} style={styles.toggle}>
-        <ThemedText type="smallBold">{isPlaying ? 'Pause' : 'Play'}</ThemedText>
-      </Pressable>
+      <Button
+        testID="player-toggle"
+        label={isPlaying ? 'Pause' : 'Play'}
+        onPress={onToggle}
+        style={styles.toggle}
+      />
     </View>
   );
 }
@@ -53,9 +57,6 @@ const styles = StyleSheet.create({
   },
   toggle: {
     alignSelf: 'center',
-    paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.six,
-    borderRadius: Spacing.five,
-    backgroundColor: '#3c87f7',
   },
 });

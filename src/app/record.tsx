@@ -2,9 +2,10 @@ import { useRouter } from 'expo-router';
 import { Linking, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Accent, Spacing } from '@/constants/theme';
 import { useRecorder } from '@/hooks/use-recorder';
 import { useRecordingPermission } from '@/hooks/use-recording-permission';
 import { useRecordingStore } from '@/lib/store-context';
@@ -24,12 +25,11 @@ export default function RecordScreen() {
           another_transformer needs microphone access to record. Enable it in
           Settings.
         </ThemedText>
-        <Pressable
+        <Button
           testID="open-settings"
+          label="Open Settings"
           onPress={() => Linking.openSettings()}
-          style={styles.primaryButton}>
-          <ThemedText type="smallBold">Open Settings</ThemedText>
-        </Pressable>
+        />
       </Centered>
     );
   }
@@ -41,9 +41,7 @@ export default function RecordScreen() {
         <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
           Allow microphone access to start recording.
         </ThemedText>
-        <Pressable testID="allow-microphone" onPress={request} style={styles.primaryButton}>
-          <ThemedText type="smallBold">Allow microphone</ThemedText>
-        </Pressable>
+        <Button testID="allow-microphone" label="Allow microphone" onPress={request} />
       </Centered>
     );
   }
@@ -97,19 +95,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 320,
   },
-  primaryButton: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
-    backgroundColor: '#3c87f7',
-  },
+  // The record control is a circle, deliberately distinct from the pill Button.
   recordButton: {
     width: 88,
     height: 88,
     borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#e5484d',
+    backgroundColor: Accent.danger,
   },
   recordButtonActive: {
     backgroundColor: '#6E6E73',

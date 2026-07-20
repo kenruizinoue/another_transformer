@@ -63,3 +63,9 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/** Accent colors for interactive elements; the only place they are defined. */
+export const Accent = {
+  primary: '#3c87f7',
+  danger: '#e5484d',
+} as const;

@@ -1,7 +1,8 @@
-import { Link, useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { RecordingRow } from '@/components/recording-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -30,9 +31,7 @@ export default function RecordingsScreen() {
             <ThemedText type="default" style={styles.emptyTitle}>
               Could not load recordings
             </ThemedText>
-            <Pressable testID="recordings-retry" onPress={reload} style={styles.retryButton}>
-              <ThemedText type="smallBold">Try again</ThemedText>
-            </Pressable>
+            <Button testID="recordings-retry" label="Try again" onPress={reload} />
           </ThemedView>
         )}
 
@@ -63,11 +62,13 @@ export default function RecordingsScreen() {
           />
         )}
 
-        <Link href="/record" asChild>
-          <Pressable testID="new-recording" style={styles.recordButton}>
-            <ThemedText type="smallBold">Record</ThemedText>
-          </Pressable>
-        </Link>
+        <Button
+          testID="new-recording"
+          label="Record"
+          variant="danger"
+          onPress={() => router.push('/record')}
+          style={styles.recordButton}
+        />
       </SafeAreaView>
     </ThemedView>
   );
@@ -102,19 +103,11 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingBottom: Spacing.three,
   },
-  retryButton: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.five,
-    backgroundColor: '#3c87f7',
-  },
   recordButton: {
     alignSelf: 'center',
     // Clear the floating native tab bar so the button stays tappable.
     marginBottom: BottomTabInset + Spacing.four,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.six,
-    borderRadius: Spacing.five,
-    backgroundColor: '#e5484d',
   },
 });

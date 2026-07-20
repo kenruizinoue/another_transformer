@@ -1,10 +1,11 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -95,12 +96,11 @@ function DetailContent({
         placeholder="Recording title"
         placeholderTextColor={theme.textSecondary}
       />
-      <Pressable
+      <Button
         testID="rename-save"
+        label="Save name"
         onPress={() => onRename(draftTitle.current)}
-        style={styles.saveButton}>
-        <ThemedText type="smallBold">Save name</ThemedText>
-      </Pressable>
+      />
 
       <AudioPlayer
         isPlaying={playback.isPlaying}
@@ -111,15 +111,12 @@ function DetailContent({
       />
 
       <ThemedView style={styles.transcriptSection}>
-        <Pressable
+        <Button
           testID="transcribe"
+          label={shownTranscript ? 'Transcribe again' : 'Transcribe'}
           onPress={() => run(recording)}
           disabled={transcribeStatus === 'transcribing'}
-          style={styles.transcribeButton}>
-          <ThemedText type="smallBold">
-            {shownTranscript ? 'Transcribe again' : 'Transcribe'}
-          </ThemedText>
-        </Pressable>
+        />
 
         {transcribeStatus === 'transcribing' && (
           <ThemedView style={styles.transcriptState} testID="transcribing">
@@ -139,24 +136,25 @@ function DetailContent({
               {shownTranscript}
             </ThemedText>
             <View style={styles.exportRow}>
-              <Pressable testID="copy" onPress={onCopy} style={styles.exportButton}>
-                <ThemedText type="smallBold">{copied ? 'Copied' : 'Copy'}</ThemedText>
-              </Pressable>
-              <Pressable
+              <Button testID="copy" label={copied ? 'Copied' : 'Copy'} onPress={onCopy} />
+              <Button
                 testID="export-pdf"
+                label="Export PDF"
                 onPress={onExport}
                 disabled={exportStatus === 'exporting'}
-                style={styles.exportButton}>
-                <ThemedText type="smallBold">Export PDF</ThemedText>
-              </Pressable>
+              />
             </View>
           </>
         )}
       </ThemedView>
 
-      <Pressable testID="delete" onPress={onDelete} style={styles.deleteButton}>
-        <ThemedText type="smallBold">Delete recording</ThemedText>
-      </Pressable>
+      <Button
+        testID="delete"
+        label="Delete recording"
+        variant="danger"
+        onPress={onDelete}
+        style={styles.deleteButton}
+      />
     </ScrollView>
   );
 }
@@ -182,13 +180,6 @@ const styles = StyleSheet.create({
   transcriptSection: {
     gap: Spacing.two,
   },
-  transcribeButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.five,
-    backgroundColor: '#3c87f7',
-  },
   transcriptState: {
     paddingVertical: Spacing.two,
   },
@@ -199,12 +190,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.two,
   },
-  exportButton: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.five,
-    backgroundColor: '#3c87f7',
-  },
   titleInput: {
     fontSize: 20,
     fontWeight: '600',
@@ -213,19 +198,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
-  saveButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.five,
-    backgroundColor: '#3c87f7',
-  },
   deleteButton: {
     alignSelf: 'center',
     marginTop: Spacing.four,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
-    backgroundColor: '#e5484d',
   },
 });
