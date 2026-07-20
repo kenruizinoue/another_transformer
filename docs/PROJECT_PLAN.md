@@ -567,6 +567,247 @@ Acceptance criteria:
 
 ---
 
+# Refactor plan (from the architecture audit)
+
+The build phases above are done. An architecture audit (boundaries, testability,
+reusability, cleanliness, solidity) found the codebase solid at the domain and
+adapter layers and weaker at the UI edge and in hook-to-native coupling. These
+phases fix the findings, ordered so user-facing correctness lands first and the
+largest structural change lands last. Same rules as above: one ticket at a time,
+TDD, no commit without an explicit ask, and each phase ends green in CI.
+
+## Phase 7 - Correctness and cleanliness quick wins
+
+User-visible correctness and the mechanical cleanups the audit flagged: UTC
+timestamps shown to users, magic accent colors and duplicated button styles, a
+fat detail screen with a native import, and a duplicated transcript source of
+truth.
+
+### Ticket 24 - Local-time timestamps
+
+Objective:
+
+- Show recording timestamps in the device's local time while keeping tests
+  deterministic. Make the timestamp formatter accept an explicit timezone or
+  offset (injected in tests), defaulting to the device timezone in the app.
+  Recording titles and the row date line both use it.
+
+TDD work:
+
+- Failing test first: formatting a known epoch with an injected timezone yields
+  the expected local wall-clock string; the default path uses the device zone.
+  Update title-generator tests to inject a fixed zone.
+
+Edge cases:
+
+- Zone with a non-hour offset. Midnight rollover changes the date. Existing
+  saved titles are historical strings and are not rewritten.
+
+Acceptance criteria:
+
+- A recording made at 16:40 local is titled 16:40, not the UTC wall clock.
+- All timestamp and title tests pass with injected zones; no test depends on
+  the machine's timezone.
+
+### Ticket 25 - Shared button component and themed accent colors
+
+Objective:
+
+- Add accent colors (primary, danger) to `src/constants/theme.ts` and one shared
+  `Button` component in `src/components/` (label, onPress, variant, disabled,
+  testID). Replace the ad hoc Pressable-plus-style buttons on the home, record,
+  detail, and settings screens. Remove the repeated `#3c87f7` and `#e5484d`
+  literals outside the theme.
+
+TDD work:
+
+- Component tests first: renders label, fires onPress, disabled blocks presses,
+  variants map to theme colors. Screen tests keep passing unchanged via the same
+  testIDs.
+
+Edge cases:
+
+- Pressed and disabled visual states. Long labels do not wrap the pill badly.
+  Existing testIDs are preserved so `.maestro/` flows stay valid.
+
+Acceptance criteria:
+
+- One Button component is the only place button chrome is defined; no accent
+  hex literals outside `theme.ts`; unit tests and the Maestro record flow pass.
+
+### Ticket 26 - Slim the recording detail screen
+
+Objective:
+
+- Extract the transcript block of `src/app/recording/[id].tsx` into a
+  `TranscriptSection` component, move copy and PDF export behind a
+  `useTranscriptActions` hook (no `expo-clipboard` import in any screen), and
+  make the store the single source of truth for the transcript: after a
+  transcribe succeeds, reload the recording instead of mirroring the text in
+  hook state.
+
+TDD work:
+
+- Failing tests first for `useTranscriptActions` (copy called with transcript,
+  disabled without one) and `TranscriptSection` (transcribe, in-progress, error,
+  transcript, copy, export states). Detail-screen tests shrink to composition:
+  loading, notfound, rename, delete.
+
+Edge cases:
+
+- Re-transcribing overwrites and the screen shows the stored value only.
+  Copy feedback resets when the transcript changes. Export disabled while
+  exporting.
+
+Acceptance criteria:
+
+- `[id].tsx` is composition only (target under 120 lines), imports no native
+  modules, and every existing behavior test passes against the new structure.
+
+### Ticket 27 - CI for Phase 7
+
+Objective:
+
+- Keep the pipeline green across the refactor: full unit suite, typecheck, and
+  lint pass on `master`; run the Maestro record flow locally to confirm the
+  refactor did not move any testID the flows depend on.
+
+TDD work:
+
+- No product code; test updates only if the refactor exposed gaps.
+
+Edge cases:
+
+- Maestro flows reference ids, not styles, so they must pass unmodified.
+
+Acceptance criteria:
+
+- CI green on `master`; local Maestro record flow passes unmodified.
+
+## Phase 8 - Whisper model management
+
+The Whisper engine has download plumbing but no UI, so selecting it without the
+model silently falls back. Make the state visible and manageable.
+
+### Ticket 28 - Whisper model download UI in Settings
+
+Objective:
+
+- In Settings, under the engine selector, show the Whisper model state (not
+  downloaded, downloading with progress, ready, error) driven by a
+  `useWhisperModel` hook over the existing `WhisperModel` manager. Provide
+  download and delete actions, and a hint on the whisper engine row when the
+  model is missing.
+
+TDD work:
+
+- Failing hook tests first with a fake `ModelFiles`: state transitions for
+  download start, progress, success, interruption to error, and delete. Screen
+  tests: each state renders, download tap starts, delete tap removes.
+
+Edge cases:
+
+- Download interrupted mid-way surfaces error with retry. Deleting while the
+  whisper engine is selected keeps the selection but shows the missing-model
+  hint. No network in tests; progress driven through the fake.
+
+Acceptance criteria:
+
+- A user can see, download, retry, and delete the model from Settings, and the
+  whisper row communicates when the model is missing.
+
+### Ticket 29 - CI for Phase 8
+
+Objective:
+
+- Phase 8 tests run in CI with the model files faked; pipeline stays green.
+
+TDD work:
+
+- Test setup only if new mocks are needed.
+
+Acceptance criteria:
+
+- CI green on `master` with the model-management tests included.
+
+## Phase 9 - Native gateway consistency
+
+The audit's structural finding: recording, playback, and permission hooks import
+`expo-audio` directly, unlike storage and transcription which sit behind domain
+gateways. Close the gap so every native surface is swappable and hook tests
+inject fakes instead of mocking module paths.
+
+### Ticket 30 - Recorder gateway
+
+Objective:
+
+- Define a `Recorder` gateway in `src/lib/domain/` (prepare, start, stop
+  returning file uri, plus a permission surface) with an expo-audio adapter in
+  `src/lib/adapters/`. `useRecorder` and `useRecordingPermission` depend on the
+  gateway via context injection, mirroring the RecordingStore pattern.
+
+TDD work:
+
+- Failing tests first: rewrite `use-recorder` and `use-recording-permission`
+  tests to inject a fake Recorder (no `jest.mock('expo-audio')` in hook tests).
+  Adapter gets its own boundary test against the mocked expo module.
+
+Edge cases:
+
+- Same behavior guarantees as today: stop with no active recording is a no-op,
+  zero-length captures are discarded, denied permission path unchanged.
+
+Acceptance criteria:
+
+- No `expo-audio` import outside `src/lib/adapters/` and `src/lib/audio/`;
+  hook tests inject fakes; record screen tests and the Maestro flow pass.
+
+### Ticket 31 - Player gateway
+
+Objective:
+
+- Define a `Player` gateway in domain (load, play, pause, seek, status) with an
+  expo-audio adapter. `usePlayback` consumes the gateway; completion reset and
+  the error flag stay in the hook.
+
+TDD work:
+
+- Failing tests first: `use-playback` tests inject a fake Player driving status
+  changes; adapter boundary test covers the expo-audio mapping.
+
+Edge cases:
+
+- Missing file surfaces the error flag. Finishing resets to the start. Starting
+  a new playback replaces the previous source.
+
+Acceptance criteria:
+
+- No `expo-audio` import in hooks; all playback and detail tests pass.
+
+### Ticket 32 - CI for Phase 9
+
+Objective:
+
+- Full suite, typecheck, and lint green in CI after the gateway migration, and
+  a final boundary check: native modules appear only under `src/lib/adapters/`,
+  `src/lib/audio/`, and `src/lib/transcription/`.
+
+TDD work:
+
+- Test setup only; optionally a small lint or grep script that fails when a
+  screen or hook imports a native module directly.
+
+Edge cases:
+
+- The boundary check must not flag test files or `__mocks__`.
+
+Acceptance criteria:
+
+- CI green on `master`; the boundary check passes and is documented in the
+  README verify section.
+
+---
+
 ## Status
 
 | Ticket | Phase | Status |
@@ -594,3 +835,12 @@ Acceptance criteria:
 | T21 Export to PDF | 5 | Done |
 | T22 CI for Phase 5 | 5 | Done |
 | T23 Maestro end-to-end flow | 6 | Done (passes on simulator; transcribe flow pending device run) |
+| T24 Local-time timestamps | 7 | Not started |
+| T25 Shared button and themed accents | 7 | Not started |
+| T26 Slim the recording detail screen | 7 | Not started |
+| T27 CI for Phase 7 | 7 | Not started |
+| T28 Whisper model download UI in Settings | 8 | Not started |
+| T29 CI for Phase 8 | 8 | Not started |
+| T30 Recorder gateway | 9 | Not started |
+| T31 Player gateway | 9 | Not started |
+| T32 CI for Phase 9 | 9 | Not started |
