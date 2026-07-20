@@ -1,10 +1,12 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTranscribePreference } from '@/hooks/use-transcribe-preference';
+import { useWhisperModel } from '@/hooks/use-whisper-model';
 import type { TranscriptionEngine } from '@/lib/domain';
 
 const ENGINES: { key: TranscriptionEngine; label: string; hint: string }[] = [
@@ -19,6 +21,7 @@ const ENGINES: { key: TranscriptionEngine; label: string; hint: string }[] = [
 
 export default function SettingsScreen() {
   const { preference, setPreference } = useTranscribePreference();
+  const whisper = useWhisperModel();
 
   return (
     <ThemedView style={styles.container}>
@@ -49,10 +52,68 @@ export default function SettingsScreen() {
                   <ThemedText type="small" themeColor="textSecondary">
                     {engine.hint}
                   </ThemedText>
+                  {engine.key === 'whisper' && whisper.status === 'not-downloaded' && (
+                    <ThemedText
+                      type="small"
+                      themeColor="textSecondary"
+                      testID="whisper-missing-hint">
+                      Model not downloaded yet; Apple Speech is used until it is.
+                    </ThemedText>
+                  )}
                 </ThemedView>
               </Pressable>
             );
           })}
+        </ThemedView>
+
+        <ThemedView style={styles.section} testID="whisper-model-section">
+          <ThemedText type="smallBold" themeColor="textSecondary">
+            WHISPER MODEL
+          </ThemedText>
+
+          {whisper.status === 'checking' && (
+            <ThemedText type="small" themeColor="textSecondary">
+              Checking...
+            </ThemedText>
+          )}
+
+          {whisper.status === 'not-downloaded' && (
+            <View style={styles.modelRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Not downloaded (about 57 MB, one time)
+              </ThemedText>
+              <Button testID="whisper-download" label="Download" onPress={whisper.download} />
+            </View>
+          )}
+
+          {whisper.status === 'downloading' && (
+            <ThemedText type="small" themeColor="textSecondary" testID="whisper-progress">
+              Downloading... {Math.round(whisper.progress * 100)}%
+            </ThemedText>
+          )}
+
+          {whisper.status === 'error' && (
+            <View style={styles.modelRow}>
+              <ThemedText type="small" themeColor="textSecondary" testID="whisper-error">
+                Download failed. Check your connection.
+              </ThemedText>
+              <Button testID="whisper-retry" label="Retry" onPress={whisper.download} />
+            </View>
+          )}
+
+          {whisper.status === 'ready' && (
+            <View style={styles.modelRow}>
+              <ThemedText type="small" themeColor="textSecondary" testID="whisper-ready">
+                Ready for offline transcription
+              </ThemedText>
+              <Button
+                testID="whisper-delete"
+                label="Delete model"
+                variant="danger"
+                onPress={whisper.remove}
+              />
+            </View>
+          )}
         </ThemedView>
 
         <ThemedView style={styles.section}>
@@ -90,5 +151,9 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     borderRadius: Spacing.three,
     gap: Spacing.one,
+  },
+  modelRow: {
+    gap: Spacing.two,
+    alignItems: 'flex-start',
   },
 });

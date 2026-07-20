@@ -839,7 +839,7 @@ Acceptance criteria:
 | T25 Shared button and themed accents | 7 | Done |
 | T26 Slim the recording detail screen | 7 | Done |
 | T27 CI for Phase 7 | 7 | Done |
-| T28 Whisper model download UI in Settings | 8 | Not started |
+| T28 Whisper model download UI in Settings | 8 | Done |
 | T29 CI for Phase 8 | 8 | Not started |
 | T30 Recorder gateway | 9 | Not started |
 | T31 Player gateway | 9 | Not started |
