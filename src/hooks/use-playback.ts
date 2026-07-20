@@ -1,5 +1,6 @@
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useCallback, useEffect, useState } from 'react';
+
+import { usePlayerGateway } from '@/lib/player-context';
 
 export type Playback = {
   isPlaying: boolean;
@@ -12,28 +13,23 @@ export type Playback = {
 };
 
 /**
- * Playback state and controls for a single audio file. Delegates to expo-audio,
- * resets to the start when playback finishes, and surfaces an error flag if a
+ * Playback state and controls for a single audio file over the Player gateway.
+ * Resets to the start when playback finishes and surfaces an error flag if a
  * control fails (for example a missing or deleted file).
  */
 export function usePlayback(uri: string | null): Playback {
-  const player = useAudioPlayer(uri ? { uri } : null);
-  const status = useAudioPlayerStatus(player);
+  const player = usePlayerGateway(uri);
   const [error, setError] = useState(false);
 
-  const isPlaying = status?.playing ?? false;
-  const positionMs = Math.max(0, Math.round((status?.currentTime ?? 0) * 1000));
-  const durationMs = Math.max(0, Math.round((status?.duration ?? 0) * 1000));
-
   useEffect(() => {
-    if (status?.didJustFinish) {
-      player.seekTo(0);
+    if (player.didJustFinish) {
+      player.seekToMs(0);
     }
-  }, [player, status?.didJustFinish]);
+  }, [player]);
 
   const toggle = useCallback(() => {
     try {
-      if (isPlaying) {
+      if (player.isPlaying) {
         player.pause();
       } else {
         player.play();
@@ -41,7 +37,7 @@ export function usePlayback(uri: string | null): Playback {
     } catch {
       setError(true);
     }
-  }, [isPlaying, player]);
+  }, [player]);
 
   const pause = useCallback(() => {
     try {
@@ -54,7 +50,7 @@ export function usePlayback(uri: string | null): Playback {
   const seekTo = useCallback(
     (ms: number) => {
       try {
-        player.seekTo(ms / 1000);
+        player.seekToMs(ms);
       } catch {
         setError(true);
       }
@@ -62,5 +58,13 @@ export function usePlayback(uri: string | null): Playback {
     [player],
   );
 
-  return { isPlaying, positionMs, durationMs, error, toggle, pause, seekTo };
+  return {
+    isPlaying: player.isPlaying,
+    positionMs: player.positionMs,
+    durationMs: player.durationMs,
+    error,
+    toggle,
+    pause,
+    seekTo,
+  };
 }
