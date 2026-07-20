@@ -28,6 +28,17 @@ describe('formatTimestamp', () => {
     const midnight = Date.UTC(2026, 6, 10, 0, 0, 0);
     expect(formatTimestamp(midnight, 'UTC')).toBe('Jul 10, 2026 00:00');
   });
+
+  it('device path (no zone) never emits undefined and matches the local clock', () => {
+    // Regression: Hermes on iOS lacks full Intl.formatToParts, which produced
+    // "undefined:undefined" titles. The no-zone path must avoid Intl entirely.
+    const out = formatTimestamp(TS);
+    expect(out).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4} \d{2}:\d{2}$/);
+    const local = new Date(TS);
+    const hh = String(local.getHours()).padStart(2, '0');
+    const mm = String(local.getMinutes()).padStart(2, '0');
+    expect(out.endsWith(`${hh}:${mm}`)).toBe(true);
+  });
 });
 
 describe('makeRecordingTitle', () => {

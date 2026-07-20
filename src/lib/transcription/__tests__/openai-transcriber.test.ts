@@ -41,6 +41,25 @@ describe('openaiTranscriber', () => {
     expect(await openaiTranscriber.transcribe('file:///a.wav')).toBeNull();
   });
 
+  it('aborts a stalled request after the timeout and returns null', async () => {
+    jest.useFakeTimers();
+    mockGetKey.mockReturnValue('sk-test');
+    const fetchFn = jest.fn(
+      (_url: string, init: { signal: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener('abort', () => reject(new Error('AbortError')));
+        }),
+    );
+    globalThis.fetch = fetchFn as unknown as typeof fetch;
+
+    const pending = openaiTranscriber.transcribe('file:///a.wav');
+    jest.advanceTimersByTime(31_000);
+
+    expect(await pending).toBeNull();
+    expect(fetchFn.mock.calls[0][1].signal.aborted).toBe(true);
+    jest.useRealTimers();
+  });
+
   it('returns null without calling the API when there is no key', async () => {
     mockGetKey.mockReturnValue(null);
     const fetchFn = mockFetch(async () => ({ ok: true, json: async () => ({ text: 'x' }) }));

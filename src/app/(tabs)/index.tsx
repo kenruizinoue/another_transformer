@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { RecordingRow } from '@/components/recording-row';
@@ -11,7 +11,11 @@ import { useRecordings } from '@/hooks/use-recordings';
 
 export default function RecordingsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { status, recordings, reload } = useRecordings();
+  // Clear the floating native tab pill, which sits above the home indicator:
+  // safe-area bottom + pill height + breathing room.
+  const tabClearance = insets.bottom + BottomTabInset + Spacing.four;
 
   return (
     <ThemedView style={styles.container}>
@@ -58,7 +62,7 @@ export default function RecordingsScreen() {
                 onPress={() => router.push(`/recording/${item.id}`)}
               />
             )}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[styles.listContent, { paddingBottom: tabClearance }]}
           />
         )}
 
@@ -67,7 +71,7 @@ export default function RecordingsScreen() {
           label="Record"
           variant="danger"
           onPress={() => router.push('/record')}
-          style={styles.recordButton}
+          style={[styles.recordButton, { marginBottom: tabClearance }]}
         />
       </SafeAreaView>
     </ThemedView>
@@ -105,8 +109,6 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     alignSelf: 'center',
-    // Clear the floating native tab bar so the button stays tappable.
-    marginBottom: BottomTabInset + Spacing.four,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.six,
   },

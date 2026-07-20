@@ -3,6 +3,8 @@ import { getOpenAiApiKey } from '@/lib/env';
 
 const ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
 const MODEL = 'gpt-4o-mini-transcribe';
+// A hung request must not block the router's fallback chain.
+const TIMEOUT_MS = 30_000;
 
 /**
  * Cloud transcription via the OpenAI API, called directly from the app with the
@@ -30,11 +32,16 @@ export const openaiTranscriber: Transcriber = {
       form.append('language', options.language.split('-')[0]);
     }
 
+    // Abort the request after TIMEOUT_MS so a stalled network resolves null
+    // and the engine router can fall back instead of hanging.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { Authorization: `Bearer ${key}` },
         body: form,
+        signal: controller.signal,
       });
       if (!res.ok) {
         return null;
@@ -43,7 +50,9 @@ export const openaiTranscriber: Transcriber = {
       const text = typeof data.text === 'string' ? data.text.trim() : '';
       return text || null;
     } catch {
-      return null;
+      return null; // network error, abort, or timeout
+    } finally {
+      clearTimeout(timeoutId);
     }
   },
 };
