@@ -20,13 +20,21 @@ import {
 
 import RecordingDetailScreen from '../recording/[id]';
 
+// Stateful fake: get() reflects rename/setTranscript, mirroring the real store
+// so the reload-after-transcribe flow shows the saved value.
 function storeWithRecording(overrides = {}) {
-  const recording = makeRecording({ id: 'r1', title: 'Old title' });
+  let recording = makeRecording({ id: 'r1', title: 'Old title' });
   return makeFakeStore({
-    get: jest.fn().mockResolvedValue(recording),
-    rename: jest.fn(async (_id, title) => ({ ...recording, title })),
+    get: jest.fn(async () => recording),
+    rename: jest.fn(async (_id, title) => {
+      recording = { ...recording, title };
+      return recording;
+    }),
     remove: jest.fn().mockResolvedValue(undefined),
-    setTranscript: jest.fn(async (_id, transcript) => ({ ...recording, transcript })),
+    setTranscript: jest.fn(async (_id, transcript, engine) => {
+      recording = { ...recording, transcript, transcriptEngine: engine };
+      return recording;
+    }),
     ...overrides,
   });
 }

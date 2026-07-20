@@ -1,7 +1,6 @@
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import { useCallback, useState } from 'react';
 
+import { printAndShareHtml } from '@/lib/adapters/pdf-share';
 import type { Recording } from '@/lib/domain';
 import { buildTranscriptHtml } from '@/lib/export/transcript-html';
 
@@ -23,10 +22,7 @@ export function useExportPdf() {
         createdAt: recording.createdAt,
         transcript: recording.transcript,
       });
-      const { uri } = await Print.printToFileAsync({ html });
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
-      }
+      await printAndShareHtml(html);
       setStatus('idle');
     } catch {
       setStatus('error');

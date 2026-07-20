@@ -1,25 +1,23 @@
-import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useRef } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
 import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { TranscriptSection } from '@/components/transcript-section';
 import { Spacing } from '@/constants/theme';
-import { useExportPdf } from '@/hooks/use-export-pdf';
 import { usePlayback, type Playback } from '@/hooks/use-playback';
 import { useRecording } from '@/hooks/use-recording';
 import { useTheme } from '@/hooks/use-theme';
-import { useTranscribe } from '@/hooks/use-transcribe';
 import type { Recording } from '@/lib/domain';
 
 export default function RecordingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { status, recording, rename, remove } = useRecording(id);
+  const { status, recording, reload, rename, remove } = useRecording(id);
   const playback = usePlayback(recording?.fileUri ?? null);
 
   const onDelete = async () => {
@@ -49,6 +47,7 @@ export default function RecordingDetailScreen() {
             playback={playback}
             onRename={rename}
             onDelete={onDelete}
+            onTranscribed={reload}
           />
         )}
       </SafeAreaView>
@@ -61,28 +60,16 @@ function DetailContent({
   playback,
   onRename,
   onDelete,
+  onTranscribed,
 }: {
   recording: Recording;
   playback: Playback;
   onRename: (title: string) => Promise<boolean>;
   onDelete: () => void;
+  onTranscribed: () => void;
 }) {
   const theme = useTheme();
   const draftTitle = useRef(recording.title);
-  const { status: transcribeStatus, transcript, run } = useTranscribe();
-  const shownTranscript = transcript ?? recording.transcript ?? null;
-  const [copied, setCopied] = useState(false);
-  const { run: exportPdf, status: exportStatus } = useExportPdf();
-
-  const onCopy = async () => {
-    if (!shownTranscript) return;
-    await Clipboard.setStringAsync(shownTranscript);
-    setCopied(true);
-  };
-
-  const onExport = () => {
-    exportPdf({ ...recording, transcript: shownTranscript ?? undefined });
-  };
 
   return (
     <ScrollView contentContainerStyle={styles.content} testID="detail-loaded">
@@ -110,43 +97,7 @@ function DetailContent({
         onSeek={playback.seekTo}
       />
 
-      <ThemedView style={styles.transcriptSection}>
-        <Button
-          testID="transcribe"
-          label={shownTranscript ? 'Transcribe again' : 'Transcribe'}
-          onPress={() => run(recording)}
-          disabled={transcribeStatus === 'transcribing'}
-        />
-
-        {transcribeStatus === 'transcribing' && (
-          <ThemedView style={styles.transcriptState} testID="transcribing">
-            <ActivityIndicator />
-          </ThemedView>
-        )}
-
-        {transcribeStatus === 'error' && (
-          <ThemedText type="small" themeColor="textSecondary" testID="transcribe-error">
-            Could not transcribe. Check your engine in Settings and try again.
-          </ThemedText>
-        )}
-
-        {shownTranscript && (
-          <>
-            <ThemedText type="default" testID="transcript" style={styles.transcript}>
-              {shownTranscript}
-            </ThemedText>
-            <View style={styles.exportRow}>
-              <Button testID="copy" label={copied ? 'Copied' : 'Copy'} onPress={onCopy} />
-              <Button
-                testID="export-pdf"
-                label="Export PDF"
-                onPress={onExport}
-                disabled={exportStatus === 'exporting'}
-              />
-            </View>
-          </>
-        )}
-      </ThemedView>
+      <TranscriptSection recording={recording} onTranscribed={onTranscribed} />
 
       <Button
         testID="delete"
@@ -176,19 +127,6 @@ const styles = StyleSheet.create({
   content: {
     gap: Spacing.three,
     paddingBottom: Spacing.six,
-  },
-  transcriptSection: {
-    gap: Spacing.two,
-  },
-  transcriptState: {
-    paddingVertical: Spacing.two,
-  },
-  transcript: {
-    lineHeight: 24,
-  },
-  exportRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
   },
   titleInput: {
     fontSize: 20,

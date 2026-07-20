@@ -837,7 +837,7 @@ Acceptance criteria:
 | T23 Maestro end-to-end flow | 6 | Done (passes on simulator; transcribe flow pending device run) |
 | T24 Local-time timestamps | 7 | Done |
 | T25 Shared button and themed accents | 7 | Done |
-| T26 Slim the recording detail screen | 7 | Not started |
+| T26 Slim the recording detail screen | 7 | Done |
 | T27 CI for Phase 7 | 7 | Not started |
 | T28 Whisper model download UI in Settings | 8 | Not started |
 | T29 CI for Phase 8 | 8 | Not started |
