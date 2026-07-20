@@ -4,6 +4,8 @@ export type TranscriptDocument = {
   title: string;
   createdAt: number;
   transcript: string;
+  /** IANA timezone for the shown date; defaults to the device zone. */
+  timeZone?: string;
 };
 
 function escapeHtml(value: string): string {
@@ -41,7 +43,7 @@ export function buildTranscriptHtml(doc: TranscriptDocument): string {
   </head>
   <body>
     <h1>${escapeHtml(doc.title)}</h1>
-    <p class="meta">${escapeHtml(formatTimestamp(doc.createdAt))}</p>
+    <p class="meta">${escapeHtml(formatTimestamp(doc.createdAt, doc.timeZone))}</p>
     ${paragraphs}
   </body>
 </html>`;

@@ -6,6 +6,7 @@ describe('buildTranscriptHtml', () => {
       title: 'Team sync',
       createdAt: Date.UTC(2026, 6, 10, 14, 30),
       transcript: 'First paragraph.\n\nSecond paragraph.',
+      timeZone: 'UTC',
     });
 
     expect(html).toContain('<h1>Team sync</h1>');
