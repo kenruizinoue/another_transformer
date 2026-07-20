@@ -4,33 +4,26 @@ import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { useTranscribe } from '@/hooks/use-transcribe';
+import type { TranscribeStatus } from '@/hooks/use-transcribe';
 import { useTranscriptActions } from '@/hooks/use-transcript-actions';
 import type { Recording } from '@/lib/domain';
 
 /**
- * The transcript block of the recording detail screen: transcribe action with
- * progress and error states, the stored transcript, and copy and PDF export.
+ * The transcript block of the recording detail screen: transcription progress
+ * and error states, the stored transcript, and copy and PDF export. The
+ * transcribe action itself lives in the screen's action row.
  */
 export function TranscriptSection({
   recording,
-  onTranscribed,
+  status,
 }: {
   recording: Recording;
-  onTranscribed: () => void;
+  status: TranscribeStatus;
 }) {
-  const { status, run } = useTranscribe(onTranscribed);
   const { transcript, copied, copy, exportPdf, exportStatus } = useTranscriptActions(recording);
 
   return (
     <ThemedView style={styles.section}>
-      <Button
-        testID="transcribe"
-        label={transcript ? 'Transcribe again' : 'Transcribe'}
-        onPress={() => run(recording)}
-        disabled={status === 'transcribing'}
-      />
-
       {status === 'transcribing' && (
         <ThemedView style={styles.state} testID="transcribing">
           <ActivityIndicator />

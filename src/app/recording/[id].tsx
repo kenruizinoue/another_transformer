@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
@@ -12,6 +12,7 @@ import { Spacing } from '@/constants/theme';
 import { usePlayback, type Playback } from '@/hooks/use-playback';
 import { useRecording } from '@/hooks/use-recording';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranscribe } from '@/hooks/use-transcribe';
 import type { Recording } from '@/lib/domain';
 
 export default function RecordingDetailScreen() {
@@ -70,6 +71,7 @@ function DetailContent({
 }) {
   const theme = useTheme();
   const draftTitle = useRef(recording.title);
+  const { status: transcribeStatus, run: transcribe } = useTranscribe(onTranscribed);
 
   return (
     <ScrollView contentContainerStyle={styles.content} testID="detail-loaded">
@@ -90,22 +92,27 @@ function DetailContent({
       />
 
       <AudioPlayer
-        isPlaying={playback.isPlaying}
         positionMs={playback.positionMs}
         durationMs={recording.durationMs || playback.durationMs}
-        onToggle={playback.toggle}
         onSeek={playback.seekTo}
       />
 
-      <TranscriptSection recording={recording} onTranscribed={onTranscribed} />
+      <View style={styles.actionRow}>
+        <Button
+          testID="player-toggle"
+          label={playback.isPlaying ? 'Pause' : 'Play'}
+          onPress={playback.toggle}
+        />
+        <Button
+          testID="transcribe"
+          label={recording.transcript ? 'Transcribe again' : 'Transcribe'}
+          onPress={() => transcribe(recording)}
+          disabled={transcribeStatus === 'transcribing'}
+        />
+        <Button testID="delete" label="Delete" variant="danger" onPress={onDelete} />
+      </View>
 
-      <Button
-        testID="delete"
-        label="Delete recording"
-        variant="danger"
-        onPress={onDelete}
-        style={styles.deleteButton}
-      />
+      <TranscriptSection recording={recording} status={transcribeStatus} />
     </ScrollView>
   );
 }
@@ -128,6 +135,13 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     paddingBottom: Spacing.six,
   },
+  actionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
   titleInput: {
     fontSize: 20,
     fontWeight: '600',
@@ -135,9 +149,5 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-  },
-  deleteButton: {
-    alignSelf: 'center',
-    marginTop: Spacing.four,
   },
 });

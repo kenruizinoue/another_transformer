@@ -1,38 +1,19 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 
 import { AudioPlayer } from '../audio-player';
 
 describe('AudioPlayer', () => {
-  it('shows a play control and formatted times when paused', async () => {
-    await render(
-      <AudioPlayer
-        isPlaying={false}
-        positionMs={2000}
-        durationMs={65000}
-        onToggle={jest.fn()}
-        onSeek={jest.fn()}
-      />,
-    );
+  it('shows the scrubber and formatted times', async () => {
+    await render(<AudioPlayer positionMs={2000} durationMs={65000} onSeek={jest.fn()} />);
 
-    expect(screen.getByText('Play')).toBeTruthy();
+    expect(screen.getByTestId('player-scrub')).toBeTruthy();
     expect(screen.getByText('0:02')).toBeTruthy();
     expect(screen.getByText('1:05')).toBeTruthy();
   });
 
-  it('shows a pause control while playing and toggles on press', async () => {
-    const onToggle = jest.fn();
-    await render(
-      <AudioPlayer
-        isPlaying
-        positionMs={0}
-        durationMs={5000}
-        onToggle={onToggle}
-        onSeek={jest.fn()}
-      />,
-    );
+  it('clamps the slider position to the duration', async () => {
+    await render(<AudioPlayer positionMs={9000} durationMs={5000} onSeek={jest.fn()} />);
 
-    expect(screen.getByText('Pause')).toBeTruthy();
-    await fireEvent.press(screen.getByTestId('player-toggle'));
-    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('player-scrub')).toHaveProp('value', 5000);
   });
 });
