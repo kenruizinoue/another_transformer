@@ -841,6 +841,6 @@ Acceptance criteria:
 | T27 CI for Phase 7 | 7 | Done |
 | T28 Whisper model download UI in Settings | 8 | Done |
 | T29 CI for Phase 8 | 8 | Done |
-| T30 Recorder gateway | 9 | Not started |
+| T30 Recorder gateway | 9 | Done |
 | T31 Player gateway | 9 | Not started |
 | T32 CI for Phase 9 | 9 | Not started |

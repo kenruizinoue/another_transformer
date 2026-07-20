@@ -1,9 +1,7 @@
-import { useAudioRecorder } from 'expo-audio';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { configureRecordingAudioSession } from '@/lib/audio/audio-session';
-import { WAV_16K_MONO } from '@/lib/audio/recording-options';
 import type { Recording, RecordingStore } from '@/lib/domain';
+import { useRecorderGateway } from '@/lib/recorder-context';
 
 export type UseRecorderOptions = {
   /** Clock, injectable for deterministic tests. */
@@ -19,13 +17,13 @@ export type UseRecorder = {
 };
 
 /**
- * Records 16 kHz mono WAV audio and saves it through the injected store. A stop
- * with no active recording is a no-op, and a zero-length capture is discarded
- * rather than saved.
+ * Records audio through the Recorder gateway and saves it through the injected
+ * store. A stop with no active recording is a no-op, and a zero-length capture
+ * is discarded rather than saved.
  */
 export function useRecorder(store: RecordingStore, options: UseRecorderOptions = {}): UseRecorder {
   const now = useMemo(() => options.now ?? (() => Date.now()), [options.now]);
-  const recorder = useAudioRecorder(WAV_16K_MONO);
+  const recorder = useRecorderGateway();
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const startedAtRef = useRef(0);
@@ -42,9 +40,8 @@ export function useRecorder(store: RecordingStore, options: UseRecorderOptions =
 
   const start = useCallback(async () => {
     if (isRecording) return;
-    await configureRecordingAudioSession();
-    await recorder.prepareToRecordAsync();
-    recorder.record();
+    await recorder.prepare();
+    recorder.start();
     startedAtRef.current = now();
     setElapsedMs(0);
     setIsRecording(true);
@@ -59,8 +56,7 @@ export function useRecorder(store: RecordingStore, options: UseRecorderOptions =
     clearTimer();
     setIsRecording(false);
     const durationMs = now() - startedAtRef.current;
-    await recorder.stop();
-    const uri = recorder.uri;
+    const uri = await recorder.stop();
     if (!uri || durationMs <= 0) {
       return null; // discard empty captures
     }

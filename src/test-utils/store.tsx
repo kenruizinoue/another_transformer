@@ -1,7 +1,8 @@
 import { render } from '@testing-library/react-native';
 import type { ReactElement, ReactNode } from 'react';
 
-import type { Recording, RecordingStore } from '@/lib/domain';
+import type { Recorder, Recording, RecordingStore } from '@/lib/domain';
+import { RecorderProvider } from '@/lib/recorder-context';
 import { RecordingStoreProvider } from '@/lib/store-context';
 import { TranscriptionProvider, type TranscriberRouter } from '@/lib/transcription-context';
 import type { TranscriptionResult } from '@/lib/transcription/router';
@@ -46,16 +47,31 @@ export function makeFakeRouter(
   return { transcribe: jest.fn().mockResolvedValue(result) };
 }
 
+/** A Recorder of jest mocks; override per test (permission, captured uri). */
+export function makeFakeRecorder(overrides: Partial<Recorder> = {}): Recorder {
+  return {
+    getPermission: jest.fn().mockResolvedValue('granted'),
+    requestPermission: jest.fn().mockResolvedValue('granted'),
+    prepare: jest.fn().mockResolvedValue(undefined),
+    start: jest.fn(),
+    stop: jest.fn().mockResolvedValue('file:///tmp/rec.wav'),
+    ...overrides,
+  };
+}
+
 export function renderWithProviders(
   ui: ReactElement,
   {
     store = makeFakeStore(),
     router = makeFakeRouter(),
-  }: { store?: RecordingStore; router?: TranscriberRouter } = {},
+    recorder = makeFakeRecorder(),
+  }: { store?: RecordingStore; router?: TranscriberRouter; recorder?: Recorder } = {},
 ) {
   return render(
     <RecordingStoreProvider store={store}>
-      <TranscriptionProvider router={router}>{ui}</TranscriptionProvider>
+      <TranscriptionProvider router={router}>
+        <RecorderProvider recorder={recorder}>{ui}</RecorderProvider>
+      </TranscriptionProvider>
     </RecordingStoreProvider>,
   );
 }

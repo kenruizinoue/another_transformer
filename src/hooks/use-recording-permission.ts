@@ -1,32 +1,27 @@
-import { getRecordingPermissionsAsync, requestRecordingPermissionsAsync } from 'expo-audio';
 import { useCallback, useEffect, useState } from 'react';
 
-export type RecordingPermissionStatus = 'undetermined' | 'granted' | 'denied';
+import type { RecorderPermission } from '@/lib/domain';
+import { useRecorderGateway } from '@/lib/recorder-context';
 
-function toStatus(res: {
-  granted: boolean;
-  canAskAgain: boolean;
-}): RecordingPermissionStatus {
-  if (res.granted) return 'granted';
-  return res.canAskAgain ? 'undetermined' : 'denied';
-}
+export type RecordingPermissionStatus = RecorderPermission;
 
 /**
- * Tracks microphone permission for recording. Reads the current status on mount
- * and exposes a request() that prompts and returns the resulting status.
+ * Tracks microphone permission through the Recorder gateway. Reads the current
+ * status on mount and exposes a request() that prompts and returns the result.
  */
 export function useRecordingPermission() {
+  const recorder = useRecorderGateway();
   const [status, setStatus] = useState<RecordingPermissionStatus>('undetermined');
 
   const refresh = useCallback(async () => {
-    setStatus(toStatus(await getRecordingPermissionsAsync()));
-  }, []);
+    setStatus(await recorder.getPermission());
+  }, [recorder]);
 
   const request = useCallback(async (): Promise<RecordingPermissionStatus> => {
-    const next = toStatus(await requestRecordingPermissionsAsync());
+    const next = await recorder.requestPermission();
     setStatus(next);
     return next;
-  }, []);
+  }, [recorder]);
 
   useEffect(() => {
     // Load the current permission status once on mount. State is set only after
