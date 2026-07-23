@@ -87,6 +87,13 @@ describe('RecordingDetailScreen', () => {
     await waitFor(() =>
       expect(store.setTranscript).toHaveBeenCalledWith('r1', 'hello from the meeting', 'apple'),
     );
+    // Engines scale their timeouts from the audio length.
+    expect(router.transcribe).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ durationMsHint: 5_000 }),
+    );
+    // The transcript shows which engine produced it.
+    expect(await screen.findByTestId('engine-badge')).toHaveTextContent('via apple (on-device)');
   });
 
   it('shows an error when every engine fails', async () => {

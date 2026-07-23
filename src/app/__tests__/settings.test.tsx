@@ -57,6 +57,15 @@ describe('SettingsScreen transcription engine', () => {
   });
 });
 
+describe('SettingsScreen engine hints', () => {
+  it('warns on the openai row when the build has no API key', async () => {
+    // Jest runs without EXPO_PUBLIC_OPENAI_API_KEY, mirroring a keyless build.
+    await render(<SettingsScreen />);
+
+    expect(screen.getByTestId('openai-key-hint')).toBeTruthy();
+  });
+});
+
 describe('SettingsScreen whisper model', () => {
   it('shows the missing model with a download action and a hint on the engine row', async () => {
     await render(<SettingsScreen />);

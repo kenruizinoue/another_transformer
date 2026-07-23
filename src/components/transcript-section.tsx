@@ -41,6 +41,11 @@ export function TranscriptSection({
           <ThemedText type="default" testID="transcript" style={styles.transcript}>
             {transcript}
           </ThemedText>
+          {recording.transcriptEngine && (
+            <ThemedText type="small" themeColor="textSecondary" testID="engine-badge">
+              via {recording.transcriptEngine === 'openai' ? 'OpenAI (cloud)' : `${recording.transcriptEngine} (on-device)`}
+            </ThemedText>
+          )}
           <View style={styles.actions}>
             <Button testID="copy" label={copied ? 'Copied' : 'Copy'} onPress={copy} />
             <Button

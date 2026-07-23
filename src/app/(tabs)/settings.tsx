@@ -8,6 +8,7 @@ import { Spacing } from '@/constants/theme';
 import { useTranscribePreference } from '@/hooks/use-transcribe-preference';
 import { useWhisperModel } from '@/hooks/use-whisper-model';
 import type { TranscriptionEngine } from '@/lib/domain';
+import { getOpenAiApiKey } from '@/lib/env';
 
 const ENGINES: { key: TranscriptionEngine; label: string; hint: string }[] = [
   { key: 'apple', label: 'On-device (Apple)', hint: 'Free, offline, private. Default.' },
@@ -58,6 +59,15 @@ export default function SettingsScreen() {
                       themeColor="textSecondary"
                       testID="whisper-missing-hint">
                       Model not downloaded yet; Apple Speech is used until it is.
+                    </ThemedText>
+                  )}
+                  {engine.key === 'openai' && getOpenAiApiKey() === null && (
+                    <ThemedText
+                      type="small"
+                      themeColor="textSecondary"
+                      testID="openai-key-hint">
+                      No API key was set when this build was made; on-device engines
+                      are used instead.
                     </ThemedText>
                   )}
                 </ThemedView>

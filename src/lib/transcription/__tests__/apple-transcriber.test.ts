@@ -47,11 +47,37 @@ describe('appleTranscriber', () => {
     const p = appleTranscriber.transcribe('file:///a.wav');
     await flush();
     expect(mod.start).toHaveBeenCalled();
+    // Long recordings depend on continuous mode; without it iOS stops at the
+    // first pause.
+    expect(mod.start.mock.calls[0][0]).toMatchObject({ continuous: true });
 
-    mod._listeners.result?.({ results: [{ transcript: 'hello world' }] });
+    mod._listeners.result?.({ isFinal: true, results: [{ transcript: 'hello world' }] });
     mod._listeners.end?.();
 
     expect(await p).toBe('hello world');
+  });
+
+  it('accumulates one final per utterance instead of overwriting', async () => {
+    const p = appleTranscriber.transcribe('file:///long.wav');
+    await flush();
+
+    mod._listeners.result?.({ isFinal: true, results: [{ transcript: 'first sentence.' }] });
+    mod._listeners.result?.({ isFinal: true, results: [{ transcript: 'second sentence.' }] });
+    mod._listeners.result?.({ isFinal: true, results: [{ transcript: 'third one.' }] });
+    mod._listeners.end?.();
+
+    expect(await p).toBe('first sentence. second sentence. third one.');
+  });
+
+  it('falls back to the last interim when no final ever arrives', async () => {
+    const p = appleTranscriber.transcribe('file:///a.wav');
+    await flush();
+
+    mod._listeners.result?.({ isFinal: false, results: [{ transcript: 'partial tex' }] });
+    mod._listeners.result?.({ isFinal: false, results: [{ transcript: 'partial text' }] });
+    mod._listeners.end?.();
+
+    expect(await p).toBe('partial text');
   });
 
   it('resolves null when the result is empty', async () => {

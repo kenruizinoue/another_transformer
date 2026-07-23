@@ -9,6 +9,8 @@ export type TranscriptionEngine = 'apple' | 'whisper' | 'openai';
 export type TranscribeOptions = {
   /** BCP-47 language tag, e.g. "en-US". */
   language?: string;
+  /** Length of the audio, so engines can scale their own timeouts. */
+  durationMsHint?: number;
 };
 
 export interface Transcriber {

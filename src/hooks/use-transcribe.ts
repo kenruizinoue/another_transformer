@@ -22,7 +22,9 @@ export function useTranscribe(onSuccess?: () => void) {
     async (recording: Recording) => {
       setStatus('transcribing');
       try {
-        const result = await router.transcribe(recording.fileUri);
+        const result = await router.transcribe(recording.fileUri, {
+          durationMsHint: recording.durationMs,
+        });
         if (!result.text) {
           setStatus('error');
           return;
