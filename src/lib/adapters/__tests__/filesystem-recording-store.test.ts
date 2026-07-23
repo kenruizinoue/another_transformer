@@ -127,4 +127,31 @@ describe('FileSystemRecordingStore', () => {
     fs.files.set('file:///doc/recordings/index.json', '{ not valid json');
     expect(await store.list()).toEqual([]);
   });
+
+  it('heals file uris written under an old app container', async () => {
+    // iOS rotated the data-container UUID on reinstall: the stored absolute
+    // path is dead but the file survived under the current container.
+    const fs = new FakeFileSystem();
+    const store = makeStore(fs);
+    fs.files.set(
+      'file:///doc/recordings/index.json',
+      JSON.stringify({
+        version: 1,
+        recordings: [
+          {
+            id: 'old1',
+            title: 'From before the reinstall',
+            createdAt: 100,
+            durationMs: 6000,
+            fileUri:
+              'file:///var/mobile/Containers/Data/Application/DEAD-BEEF-UUID/Documents/recordings/old1.wav',
+          },
+        ],
+      }),
+    );
+
+    const list = await store.list();
+    expect(list[0].fileUri).toBe('file:///doc/recordings/old1.wav');
+    expect((await store.get('old1'))?.fileUri).toBe('file:///doc/recordings/old1.wav');
+  });
 });

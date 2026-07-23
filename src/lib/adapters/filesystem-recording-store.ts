@@ -161,10 +161,22 @@ export class FileSystemRecordingStore implements RecordingStore {
       if (!parsed || !Array.isArray(parsed.recordings)) {
         return [];
       }
-      return parsed.recordings;
+      return parsed.recordings.map((record) => this.healFileUri(record));
     } catch {
       return []; // missing or corrupt index recovers to empty
     }
+  }
+
+  /**
+   * Stored uris are absolute, but iOS can rotate the app's data-container UUID
+   * on reinstall or update, silently killing every stored path while the files
+   * themselves survive under the new container. Re-anchor each uri to the
+   * CURRENT recordings directory by filename so old entries keep working.
+   */
+  private healFileUri(record: Recording): Recording {
+    const fileName = record.fileUri.slice(record.fileUri.lastIndexOf('/') + 1);
+    const healed = `${this.dirUri}${fileName}`;
+    return healed === record.fileUri ? record : { ...record, fileUri: healed };
   }
 
   private async saveIndex(recordings: Recording[]): Promise<void> {
