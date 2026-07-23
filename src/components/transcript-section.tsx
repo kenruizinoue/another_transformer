@@ -24,9 +24,11 @@ const ENGINE_LABELS: Record<TranscriptionEngine, string> = {
 export function TranscriptSection({
   recording,
   status,
+  errorDetail,
 }: {
   recording: Recording;
   status: TranscribeStatus;
+  errorDetail?: string | null;
 }) {
   const { transcript, copied, copy, exportPdf, exportStatus } = useTranscriptActions(recording);
 
@@ -39,9 +41,16 @@ export function TranscriptSection({
       )}
 
       {status === 'error' && (
-        <ThemedText type="small" themeColor="textSecondary" testID="transcribe-error">
-          Could not transcribe. Check your engine in Settings and try again.
-        </ThemedText>
+        <>
+          <ThemedText type="small" themeColor="textSecondary" testID="transcribe-error">
+            Could not transcribe. Check your engine in Settings and try again.
+          </ThemedText>
+          {errorDetail && (
+            <ThemedText type="small" themeColor="textSecondary" testID="transcribe-error-detail">
+              {errorDetail}
+            </ThemedText>
+          )}
+        </>
       )}
 
       {transcript && (

@@ -98,15 +98,22 @@ describe('RecordingDetailScreen', () => {
     );
   });
 
-  it('shows an error when every engine fails', async () => {
+  it('shows an error with per-engine detail when every engine fails', async () => {
     const store = storeWithRecording();
-    const router = makeFakeRouter({ text: null, engine: null });
+    const router = makeFakeRouter({
+      text: null,
+      engine: null,
+      notes: ['openai: HTTP 401', 'whisper: unavailable', 'apple: recognizer error: no-speech'],
+    });
     await renderWithProviders(<RecordingDetailScreen />, { store, router });
 
     await screen.findByTestId('detail-loaded');
     await fireEvent.press(screen.getByTestId('transcribe'));
 
     expect(await screen.findByTestId('transcribe-error')).toBeTruthy();
+    expect(screen.getByTestId('transcribe-error-detail')).toHaveTextContent(
+      'openai: HTTP 401 · whisper: unavailable · apple: recognizer error: no-speech',
+    );
     expect(store.setTranscript).not.toHaveBeenCalled();
   });
 

@@ -17,27 +17,31 @@ export function useTranscribe(onSuccess?: () => void) {
   const store = useRecordingStore();
   const router = useTranscriber();
   const [status, setStatus] = useState<TranscribeStatus>('idle');
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   const run = useCallback(
     async (recording: Recording) => {
       setStatus('transcribing');
+      setErrorDetail(null);
       try {
         const result = await router.transcribe(recording.fileUri, {
           durationMsHint: recording.durationMs,
         });
-        if (!result.text) {
+        if (result.text === null) {
+          setErrorDetail(result.notes.length > 0 ? result.notes.join(' · ') : null);
           setStatus('error');
           return;
         }
         await store.setTranscript(recording.id, result.text, result.engine);
         setStatus('done');
         onSuccess?.();
-      } catch {
+      } catch (error) {
+        setErrorDetail(String(error));
         setStatus('error');
       }
     },
     [onSuccess, router, store],
   );
 
-  return { status, run };
+  return { status, errorDetail, run };
 }

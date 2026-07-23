@@ -2,7 +2,7 @@ import type { TranscribeOptions, Transcriber, TranscriptionEngine } from '@/lib/
 
 export type TranscriptionResult =
   | { text: string; engine: TranscriptionEngine }
-  | { text: null; engine: null };
+  | { text: null; engine: null; notes: string[] };
 
 // Fallback chain: the preferred engine first, then the rest in this order.
 const FALLBACK_ORDER: TranscriptionEngine[] = ['whisper', 'apple', 'openai'];
@@ -24,18 +24,33 @@ export type TranscriptionRouterDeps = {
 export function createTranscriptionRouter(deps: TranscriptionRouterDeps) {
   return {
     async transcribe(fileUri: string, options?: TranscribeOptions): Promise<TranscriptionResult> {
+      // Collect per-engine failure reasons so a total failure is diagnosable
+      // even in release builds with no console.
+      const notes: string[] = [];
+      const trackedOptions: TranscribeOptions = {
+        ...options,
+        onDiagnostic: (engine, detail) => {
+          notes.push(`${engine}: ${detail}`);
+          options?.onDiagnostic?.(engine, detail);
+        },
+      };
+
       const preferred = await deps.getPreference();
       for (const engine of engineOrder(preferred)) {
         const adapter = deps.adapters[engine];
         if (!adapter || !(await adapter.isAvailable())) {
+          notes.push(`${engine}: unavailable`);
           continue;
         }
-        const text = await adapter.transcribe(fileUri, options);
+        const text = await adapter.transcribe(fileUri, trackedOptions);
         if (text) {
           return { text, engine };
         }
+        if (!notes.some((note) => note.startsWith(`${engine}:`))) {
+          notes.push(`${engine}: returned nothing`);
+        }
       }
-      return { text: null, engine: null };
+      return { text: null, engine: null, notes };
     },
   };
 }

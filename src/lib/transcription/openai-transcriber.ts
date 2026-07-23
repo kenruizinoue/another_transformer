@@ -21,6 +21,7 @@ export const openaiTranscriber: Transcriber = {
   async transcribe(fileUri: string, options?: TranscribeOptions): Promise<string | null> {
     const key = getOpenAiApiKey();
     if (!key || !fileUri) {
+      options?.onDiagnostic?.('openai', key ? 'no file uri' : 'no API key in build');
       return null;
     }
 
@@ -44,13 +45,20 @@ export const openaiTranscriber: Transcriber = {
         signal: controller.signal,
       });
       if (!res.ok) {
+        options?.onDiagnostic?.('openai', `HTTP ${res.status}`);
         return null;
       }
       const data = (await res.json()) as { text?: unknown };
       const text = typeof data.text === 'string' ? data.text.trim() : '';
+      if (!text) options?.onDiagnostic?.('openai', 'empty transcript');
       return text || null;
-    } catch {
-      return null; // network error, abort, or timeout
+    } catch (error) {
+      // network error, abort, or timeout
+      options?.onDiagnostic?.(
+        'openai',
+        controller.signal.aborted ? `timed out after ${TIMEOUT_MS / 1000}s` : String(error),
+      );
+      return null;
     } finally {
       clearTimeout(timeoutId);
     }

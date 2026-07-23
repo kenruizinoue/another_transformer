@@ -42,8 +42,14 @@ export const appleTranscriber: Transcriber = {
   },
 
   async transcribe(fileUri: string, options?: TranscribeOptions): Promise<string | null> {
-    if (!available() || !fileUri) return null;
-    if (!(await ensurePermission())) return null;
+    if (!available() || !fileUri) {
+      options?.onDiagnostic?.('apple', 'not available on this platform');
+      return null;
+    }
+    if (!(await ensurePermission())) {
+      options?.onDiagnostic?.('apple', 'speech permission denied');
+      return null;
+    }
 
     const lang = options?.language ?? 'en-US';
     const waitMs = Math.max(MIN_WAIT_MS, (options?.durationMsHint ?? 0) * 3);
@@ -94,12 +100,17 @@ export const appleTranscriber: Transcriber = {
         }),
       );
       subscriptions.push(
-        ExpoSpeechRecognitionModule.addListener('end', () => done(collectedText() || null)),
+        ExpoSpeechRecognitionModule.addListener('end', () => {
+          if (!collectedText()) options?.onDiagnostic?.('apple', 'recognizer returned no text');
+          done(collectedText() || null);
+        }),
       );
       subscriptions.push(
-        ExpoSpeechRecognitionModule.addListener('error', () =>
-          done(collectedText() || null),
-        ),
+        ExpoSpeechRecognitionModule.addListener('error', (event) => {
+          const e = event as { error?: string; message?: string };
+          options?.onDiagnostic?.('apple', `recognizer error: ${e?.error ?? 'unknown'}`);
+          done(collectedText() || null);
+        }),
       );
 
       try {
@@ -112,7 +123,8 @@ export const appleTranscriber: Transcriber = {
           requiresOnDeviceRecognition: true,
           audioSource: { uri: fileUri },
         });
-      } catch {
+      } catch (error) {
+        options?.onDiagnostic?.('apple', `failed to start: ${String(error)}`);
         done(null);
         return;
       }

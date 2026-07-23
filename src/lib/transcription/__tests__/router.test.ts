@@ -58,7 +58,7 @@ describe('createTranscriptionRouter', () => {
     expect(adapters.whisper.transcribe).toHaveBeenCalled();
   });
 
-  it('returns a null result when every engine fails', async () => {
+  it('returns a null result with per-engine notes when every engine fails', async () => {
     const adapters = {
       apple: adapter('apple', { text: null }),
       whisper: adapter('whisper', { text: null }),
@@ -66,6 +66,38 @@ describe('createTranscriptionRouter', () => {
     };
     const router = makeRouter(adapters, 'apple');
 
-    expect(await router.transcribe('file:///a.wav')).toEqual({ text: null, engine: null });
+    const result = await router.transcribe('file:///a.wav');
+    expect(result.text).toBeNull();
+    expect(result.engine).toBeNull();
+    if (result.text === null) {
+      expect(result.notes).toEqual([
+        'apple: returned nothing',
+        'whisper: returned nothing',
+        'openai: unavailable',
+      ]);
+    }
+  });
+
+  it('keeps adapter-reported diagnostics in the notes', async () => {
+    const failing: Transcriber = {
+      engine: 'openai',
+      isAvailable: jest.fn().mockResolvedValue(true),
+      transcribe: jest.fn(async (_uri, options) => {
+        options?.onDiagnostic?.('openai', 'HTTP 401');
+        return null;
+      }),
+    };
+    const adapters = {
+      apple: adapter('apple', { available: false }),
+      whisper: adapter('whisper', { available: false }),
+      openai: failing,
+    };
+    const router = makeRouter(adapters, 'openai');
+
+    const result = await router.transcribe('file:///a.wav');
+    if (result.text === null) {
+      expect(result.notes).toContain('openai: HTTP 401');
+      expect(result.notes).toContain('whisper: unavailable');
+    }
   });
 });

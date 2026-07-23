@@ -71,7 +71,7 @@ function DetailContent({
 }) {
   const theme = useTheme();
   const draftTitle = useRef(recording.title);
-  const { status: transcribeStatus, run: transcribe } = useTranscribe(onTranscribed);
+  const { status: transcribeStatus, errorDetail, run: transcribe } = useTranscribe(onTranscribed);
 
   return (
     <ScrollView contentContainerStyle={styles.content} testID="detail-loaded">
@@ -112,7 +112,11 @@ function DetailContent({
         <Button testID="delete" label="Delete" variant="danger" onPress={onDelete} />
       </View>
 
-      <TranscriptSection recording={recording} status={transcribeStatus} />
+      <TranscriptSection
+        recording={recording}
+        status={transcribeStatus}
+        errorDetail={errorDetail}
+      />
     </ScrollView>
   );
 }

@@ -25,11 +25,13 @@ describe('openaiTranscriber', () => {
     expect(await openaiTranscriber.transcribe('file:///a.wav')).toBe('hello world');
   });
 
-  it('returns null on a non-200 response', async () => {
+  it('returns null on a non-200 response and reports the status', async () => {
     mockGetKey.mockReturnValue('sk-test');
-    mockFetch(async () => ({ ok: false, json: async () => ({}) }));
+    mockFetch(async () => ({ ok: false, status: 401, json: async () => ({}) }));
+    const onDiagnostic = jest.fn();
 
-    expect(await openaiTranscriber.transcribe('file:///a.wav')).toBeNull();
+    expect(await openaiTranscriber.transcribe('file:///a.wav', { onDiagnostic })).toBeNull();
+    expect(onDiagnostic).toHaveBeenCalledWith('openai', 'HTTP 401');
   });
 
   it('returns null on a network error', async () => {

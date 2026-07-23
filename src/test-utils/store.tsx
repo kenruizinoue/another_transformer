@@ -42,7 +42,7 @@ export function renderWithStore(ui: ReactElement, store: RecordingStore = makeFa
 }
 
 export function makeFakeRouter(
-  result: TranscriptionResult = { text: null, engine: null },
+  result: TranscriptionResult = { text: null, engine: null, notes: [] },
 ): TranscriberRouter {
   return { transcribe: jest.fn().mockResolvedValue(result) };
 }

@@ -39,13 +39,18 @@ export function createWhisperTranscriber(model: WhisperModel): Transcriber {
     async transcribe(wavUri: string, options?: TranscribeOptions): Promise<string | null> {
       try {
         const context = await getContext();
-        if (!context || !wavUri) return null;
+        if (!context || !wavUri) {
+          options?.onDiagnostic?.('whisper', context ? 'no file uri' : 'model not ready');
+          return null;
+        }
         const language = (options?.language ?? 'en').split('-')[0];
         const { promise } = context.transcribe(wavUri, { language, maxThreads: 4 });
         const { result } = await promise;
         const text = (result ?? '').trim();
+        if (!text) options?.onDiagnostic?.('whisper', 'empty transcript');
         return text || null;
-      } catch {
+      } catch (error) {
+        options?.onDiagnostic?.('whisper', String(error));
         return null;
       }
     },

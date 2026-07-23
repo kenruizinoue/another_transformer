@@ -11,6 +11,12 @@ export type TranscribeOptions = {
   language?: string;
   /** Length of the audio, so engines can scale their own timeouts. */
   durationMsHint?: number;
+  /**
+   * Optional failure attribution: engines report WHY they produced no text
+   * (HTTP status, permission, empty result) so total failures are diagnosable
+   * on release builds where no console exists.
+   */
+  onDiagnostic?: (engine: TranscriptionEngine, detail: string) => void;
 };
 
 export interface Transcriber {
