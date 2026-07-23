@@ -3,12 +3,14 @@ jest.mock('@/lib/env', () => ({ getOpenAiApiKey: jest.fn() }));
 // Built inside the factory because ES imports hoist above outer consts; plain
 // JS inside since babel's mock validator rejects TS annotations here.
 jest.mock('expo-file-system/legacy', () => {
+  // Loose types on purpose: babel's mock validator rejects annotations with
+  // named identifiers, and tsc otherwise narrows the literals.
   const state = {
     result: { status: 200, body: '{}' },
     cancelled: false,
     lastArgs: [],
     pendingResolve: null,
-  };
+  } as { result: unknown; cancelled: boolean; lastArgs: unknown[]; pendingResolve: Function | null };
   return {
     __esModule: true,
     FileSystemUploadType: { MULTIPART: 'multipart' },
