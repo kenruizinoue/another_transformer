@@ -1,15 +1,21 @@
+import * as FileSystem from 'expo-file-system/legacy';
+
 import type { TranscribeOptions, Transcriber } from '@/lib/domain';
 import { getOpenAiApiKey } from '@/lib/env';
 
 const ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
 const MODEL = 'gpt-4o-mini-transcribe';
-// A hung request must not block the router's fallback chain.
-const TIMEOUT_MS = 30_000;
+// A hung request must not block the router's fallback chain; scale with the
+// audio length since long files upload and process slower.
+const MIN_TIMEOUT_MS = 30_000;
 
 /**
  * Cloud transcription via the OpenAI API, called directly from the app with the
- * user's own key (no backend). Returns null on any failure so the router can
- * fall back to another engine.
+ * user's own key (no backend). Uses expo-file-system's native multipart
+ * uploader: Expo SDK 57's WinterCG fetch rejects React Native's classic
+ * FormData file parts ("Unsupported FormDataPart implementation"), so fetch
+ * cannot upload files here. Returns null on any failure so the router can fall
+ * back to another engine.
  */
 export const openaiTranscriber: Transcriber = {
   engine: 'openai',
@@ -25,39 +31,38 @@ export const openaiTranscriber: Transcriber = {
       return null;
     }
 
-    const form = new FormData();
-    // React Native FormData accepts a file descriptor object here.
-    form.append('file', { uri: fileUri, name: 'audio.wav', type: 'audio/wav' } as unknown as Blob);
-    form.append('model', MODEL);
-    if (options?.language) {
-      form.append('language', options.language.split('-')[0]);
-    }
+    const language = options?.language?.split('-')[0];
+    const waitMs = Math.max(MIN_TIMEOUT_MS, (options?.durationMsHint ?? 0) * 3);
 
-    // Abort the request after TIMEOUT_MS so a stalled network resolves null
-    // and the engine router can fall back instead of hanging.
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const task = FileSystem.createUploadTask(ENDPOINT, fileUri, {
+      httpMethod: 'POST',
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: 'audio/wav',
+      parameters: { model: MODEL, ...(language ? { language } : {}) },
+      headers: { Authorization: `Bearer ${key}` },
+    });
+
+    const timeoutId = setTimeout(() => {
+      task.cancelAsync().catch(() => {});
+    }, waitMs);
+
     try {
-      const res = await fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${key}` },
-        body: form,
-        signal: controller.signal,
-      });
-      if (!res.ok) {
+      const res = await task.uploadAsync();
+      if (!res) {
+        options?.onDiagnostic?.('openai', `timed out after ${Math.round(waitMs / 1000)}s`);
+        return null;
+      }
+      if (res.status !== 200) {
         options?.onDiagnostic?.('openai', `HTTP ${res.status}`);
         return null;
       }
-      const data = (await res.json()) as { text?: unknown };
+      const data = JSON.parse(res.body) as { text?: unknown };
       const text = typeof data.text === 'string' ? data.text.trim() : '';
       if (!text) options?.onDiagnostic?.('openai', 'empty transcript');
       return text || null;
     } catch (error) {
-      // network error, abort, or timeout
-      options?.onDiagnostic?.(
-        'openai',
-        controller.signal.aborted ? `timed out after ${TIMEOUT_MS / 1000}s` : String(error),
-      );
+      options?.onDiagnostic?.('openai', String(error));
       return null;
     } finally {
       clearTimeout(timeoutId);
