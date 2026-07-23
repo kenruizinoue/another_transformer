@@ -28,6 +28,12 @@ export default function SettingsScreen() {
   const [snackbar, setSnackbar] = useState<string | null>(null);
 
   const selectEngine = (engine: TranscriptionEngine) => {
+    // Whisper without its model can never transcribe: block the selection and
+    // point at the download instead of persisting a doomed choice.
+    if (engine === 'whisper' && whisper.status !== 'ready') {
+      setSnackbar('Download the Whisper model below first, then select this engine.');
+      return;
+    }
     // Resolve the key at selection time so a doomed choice is called out
     // immediately instead of failing silently at transcribe time.
     if (engine === 'openai' && getOpenAiApiKey() === null) {

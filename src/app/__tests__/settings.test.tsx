@@ -29,6 +29,9 @@ const modelState = (instance as unknown as { _state: { present: boolean } })._st
 
 beforeEach(async () => {
   await AsyncStorage.clear();
+  // Reset both the fake files AND the state machine: WhisperModel caches
+  // 'ready' and would leak it across tests otherwise.
+  await instance.whisperModel.remove();
   modelState.present = false;
 });
 
@@ -76,13 +79,37 @@ describe('SettingsScreen engine hints', () => {
     expect(await screen.findByText('✓ Cloud (OpenAI)')).toBeTruthy();
   });
 
-  it('selecting an on-device engine shows no snackbar', async () => {
+  it('selecting apple shows no snackbar', async () => {
+    await render(<SettingsScreen />);
+    await screen.findByText('✓ On-device (Apple)');
+
+    await fireEvent.press(screen.getByTestId('engine-apple'));
+
+    expect(screen.queryByTestId('snackbar')).toBeNull();
+  });
+
+  it('blocks selecting whisper while the model is missing and explains why', async () => {
     await render(<SettingsScreen />);
     await screen.findByText('✓ On-device (Apple)');
 
     await fireEvent.press(screen.getByTestId('engine-whisper'));
 
-    expect(screen.queryByTestId('snackbar')).toBeNull();
+    expect(await screen.findByTestId('snackbar')).toBeTruthy();
+    expect(screen.getByText(/Download the Whisper model below first/)).toBeTruthy();
+    // Selection did not change.
+    expect(screen.getByText('✓ On-device (Apple)')).toBeTruthy();
+    expect(await AsyncStorage.getItem('transcribe-engine')).toBeNull();
+  });
+
+  it('allows selecting whisper once the model is ready', async () => {
+    modelState.present = true;
+    await render(<SettingsScreen />);
+    await screen.findByTestId('whisper-ready');
+
+    await fireEvent.press(screen.getByTestId('engine-whisper'));
+
+    expect(await screen.findByText('✓ On-device (Whisper)')).toBeTruthy();
+    expect(await AsyncStorage.getItem('transcribe-engine')).toBe('whisper');
   });
 });
 
