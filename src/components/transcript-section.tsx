@@ -6,7 +6,15 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import type { TranscribeStatus } from '@/hooks/use-transcribe';
 import { useTranscriptActions } from '@/hooks/use-transcript-actions';
-import type { Recording } from '@/lib/domain';
+import type { Recording, TranscriptionEngine } from '@/lib/domain';
+
+// Human-readable engine + model attribution. Keep in sync with the adapters:
+// openai-transcriber MODEL and the whisper ggml-base.en model file.
+const ENGINE_LABELS: Record<TranscriptionEngine, string> = {
+  apple: 'Apple Speech (on-device)',
+  whisper: 'Whisper base.en (on-device)',
+  openai: 'OpenAI gpt-4o-mini-transcribe (cloud)',
+};
 
 /**
  * The transcript block of the recording detail screen: transcription progress
@@ -43,7 +51,7 @@ export function TranscriptSection({
           </ThemedText>
           {recording.transcriptEngine && (
             <ThemedText type="small" themeColor="textSecondary" testID="engine-badge">
-              via {recording.transcriptEngine === 'openai' ? 'OpenAI (cloud)' : `${recording.transcriptEngine} (on-device)`}
+              via {ENGINE_LABELS[recording.transcriptEngine]}
             </ThemedText>
           )}
           <View style={styles.actions}>

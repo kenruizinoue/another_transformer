@@ -64,6 +64,26 @@ describe('SettingsScreen engine hints', () => {
 
     expect(screen.getByTestId('openai-key-hint')).toBeTruthy();
   });
+
+  it('shows a snackbar when selecting cloud without a baked key, but still selects it', async () => {
+    await render(<SettingsScreen />);
+    await screen.findByText('✓ On-device (Apple)');
+
+    await fireEvent.press(screen.getByTestId('engine-openai'));
+
+    expect(await screen.findByTestId('snackbar')).toBeTruthy();
+    expect(screen.getByText(/No API key was baked into this build/)).toBeTruthy();
+    expect(await screen.findByText('✓ Cloud (OpenAI)')).toBeTruthy();
+  });
+
+  it('selecting an on-device engine shows no snackbar', async () => {
+    await render(<SettingsScreen />);
+    await screen.findByText('✓ On-device (Apple)');
+
+    await fireEvent.press(screen.getByTestId('engine-whisper'));
+
+    expect(screen.queryByTestId('snackbar')).toBeNull();
+  });
 });
 
 describe('SettingsScreen whisper model', () => {

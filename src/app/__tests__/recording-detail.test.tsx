@@ -92,8 +92,10 @@ describe('RecordingDetailScreen', () => {
       expect.any(String),
       expect.objectContaining({ durationMsHint: 5_000 }),
     );
-    // The transcript shows which engine produced it.
-    expect(await screen.findByTestId('engine-badge')).toHaveTextContent('via apple (on-device)');
+    // The transcript shows which engine and model produced it.
+    expect(await screen.findByTestId('engine-badge')).toHaveTextContent(
+      'via Apple Speech (on-device)',
+    );
   });
 
   it('shows an error when every engine fails', async () => {

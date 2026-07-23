@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { Snackbar } from '@/components/snackbar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -23,6 +25,18 @@ const ENGINES: { key: TranscriptionEngine; label: string; hint: string }[] = [
 export default function SettingsScreen() {
   const { preference, setPreference } = useTranscribePreference();
   const whisper = useWhisperModel();
+  const [snackbar, setSnackbar] = useState<string | null>(null);
+
+  const selectEngine = (engine: TranscriptionEngine) => {
+    // Resolve the key at selection time so a doomed choice is called out
+    // immediately instead of failing silently at transcribe time.
+    if (engine === 'openai' && getOpenAiApiKey() === null) {
+      setSnackbar(
+        'No API key was baked into this build. On-device engines will be used instead.',
+      );
+    }
+    setPreference(engine);
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -42,7 +56,7 @@ export default function SettingsScreen() {
                 key={engine.key}
                 testID={`engine-${engine.key}`}
                 accessibilityState={{ selected }}
-                onPress={() => setPreference(engine.key)}>
+                onPress={() => selectEngine(engine.key)}>
                 <ThemedView
                   type={selected ? 'backgroundSelected' : 'backgroundElement'}
                   style={styles.engineRow}>
@@ -137,6 +151,7 @@ export default function SettingsScreen() {
           </ThemedText>
         </ThemedView>
       </SafeAreaView>
+      <Snackbar message={snackbar} onDismiss={() => setSnackbar(null)} />
     </ThemedView>
   );
 }
