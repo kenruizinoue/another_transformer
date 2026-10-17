@@ -1,66 +1,104 @@
-# Welcome to your Expo app 👋
+# Another Transformer
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An open-source iPhone app that turns audio into text, with three transcription
+engines you can switch between: Apple Speech on device, Whisper on device, or
+OpenAI in the cloud with your own key. Recordings keep running while the phone
+is locked. Transcribes English, Spanish and Japanese.
 
-## Get started
+Built with Expo SDK 57, TypeScript and expo-router. MIT licensed.
 
-1. Install dependencies
+## What it does
 
-   ```bash
-   npm install
-   ```
+- Record audio to a WAV file; recording survives the phone locking.
+- List saved recordings with title, date and duration; play back, rename, delete.
+- Transcribe a recording with the engine chosen in Settings, falling back to the
+  next engine when one is unavailable or returns nothing:
 
-2. Start the app
+| Engine | Where it runs | Needs | Notes |
+|---|---|---|---|
+| Apple Speech (default) | On device | Nothing | Free, offline, private. Uses iOS's own recognizer. |
+| Whisper | On device | One-time model download (about 148 MB) | whisper.cpp through `whisper.rn`, multilingual `base` model. |
+| OpenAI | Cloud | Your OpenAI API key at build time | `gpt-4o-mini-transcribe`; audio leaves the phone. |
 
-   ```bash
-   npx expo start
-   ```
+- Pick the spoken language in Settings (English, Español, 日本語). All three
+  engines use it.
+- Copy the transcript or export it as a PDF.
 
-In the output, you'll find options to open the app in a
+The three engines sit behind one `Transcriber` interface, so the app, the
+router and the tests do not care which one produced the text.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Run it
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Audio recording, Whisper and speech recognition are native modules, so the app
+needs a development build on a real iPhone. Expo Go cannot run it.
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env        # optional: add your OpenAI key for the cloud engine
+npx expo run:ios --device   # builds and installs on a connected iPhone
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The OpenAI key is read from `EXPO_PUBLIC_OPENAI_API_KEY` and inlined into the
+bundle at build time. Leave it empty to use only the on-device engines. Never
+commit `.env`; it is gitignored and only `.env.example` is tracked.
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The Whisper model is not bundled. Download it once from Settings; it is stored
+in the app's documents directory and can be deleted from the same screen.
 
 ## Verify
 
 ```bash
-npm test                  # unit and integration tests
+npm test                  # jest-expo + React Native Testing Library, 129 tests
 npm run typecheck         # tsc --noEmit
-npm run lint              # eslint
+npm run lint              # eslint-config-expo
 npm run check:boundaries  # native modules only under src/lib/adapters, lib/audio, lib/transcription
-npm run e2e               # Maestro flows; local only, never in CI
+npm run e2e               # Maestro flows against a connected device; local only, never in CI
 ```
+
+CI runs lint, the boundary check, typecheck and the unit and integration
+tests on every push and pull request.
+
+## Benchmark the engines
+
+`bench/` holds the protocol for comparing the three engines on the same
+recordings (word error rate against a corrected reference transcript, time to
+result, and cost), and a small word error rate tool:
+
+```bash
+npm run bench:wer -- bench/samples/en-quiet-01.ref.txt bench/samples/en-quiet-01.whisper.txt
+```
+
+See `bench/README.md` for the full protocol and the results table.
+
+## Layout
+
+```text
+src/app/              expo-router screens (thin)
+src/components/       reusable presentational UI
+src/hooks/            stateful workflow logic
+src/lib/domain/       types and gateway interfaces (Recorder, Player, Transcriber, RecordingStore)
+src/lib/adapters/     storage and native implementations
+src/lib/audio/        recorder and player gateways
+src/lib/transcription/ the three engines, the router and the preferences
+src/lib/export/       clipboard and PDF export
+src/lib/utils/        pure helpers
+.maestro/             end-to-end flows (device only)
+bench/                engine benchmark protocol and tools
+standards/            the engineering rules the project follows
+docs/PROJECT_PLAN.md  the ticket-by-ticket plan the app was built from
+```
+
+Native configuration (background audio, microphone and speech permissions) is
+declared in `app.json` through config plugins; `ios/` and `android/` are
+generated and gitignored.
+
+## How it was built
+
+The app was planned and delivered ticket by ticket with an AI coding agent
+following the rules in `standards/`. `docs/PROJECT_PLAN.md` is the actual plan,
+with every ticket's scope, verification and status. The write-up is at
+[anothersystems.com/work](https://anothersystems.com/work).
+
+## License
+
+MIT, see `LICENSE`.
