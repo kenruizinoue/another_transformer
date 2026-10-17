@@ -1,25 +1,28 @@
 # another_transformer
 
-Mobile app to transform audio and text into each other. First and only current
-feature: audio to text (record, save, play back, transcribe, export). iOS-first,
-built with Expo and TypeScript.
+Mobile app that turns audio into text. The user records (recording keeps
+running while the iPhone is locked), saves and lists recordings, plays them
+back, transcribes with one of three engines (Apple Speech, Whisper on device,
+OpenAI cloud) in English, Spanish or Japanese, then copies the text or exports
+it to PDF. iOS-first, built with Expo and TypeScript.
 
 ## How to work in this repo
 
-This project follows the Ken SDLC toolkit, which is copied into this repo under
-`standards/` and `prompts/`. Read the rules from those source files each time;
-this file never summarizes, compacts, or copies their content, so nothing gets
-lost.
+The engineering rules this app follows are copied into `standards/`. Read them
+from the source files each time; this file never summarizes or copies their
+content, so nothing gets lost.
 
-- Flow to follow: `prompts/prompts.md`, then `prompts/full.md` (Full track).
 - Always mandatory: `standards/base-sdlc.md`.
 - Stack rules: read `standards/react-native.md` before working on any app phase.
 - Read the exact versioned Expo docs at https://docs.expo.dev/versions/v57.0.0/
   before writing code (see `AGENTS.md`).
+- Plan and ticket status: `docs/PROJECT_PLAN.md`. Work is delivered as numbered
+  tickets, each ending with the verification commands in `README.md` and an
+  update to the plan's status table.
 
 ## Where things live
 
-- Plan and ticket status: `docs/PROJECT_PLAN.md`.
 - App code and layer boundaries follow `standards/react-native.md`
   (`app/` screens, `components/`, `hooks/`, `lib/domain`, `lib/adapters`,
-  `lib/utils`).
+  `lib/utils`, `lib/transcription` for the engines).
+- Benchmark protocol and word error rate tool: `bench/`.
