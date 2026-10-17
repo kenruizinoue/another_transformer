@@ -9,10 +9,10 @@ import { useTranscriptActions } from '@/hooks/use-transcript-actions';
 import type { Recording, TranscriptionEngine } from '@/lib/domain';
 
 // Human-readable engine + model attribution. Keep in sync with the adapters:
-// openai-transcriber MODEL and the whisper ggml-base.en model file.
+// openai-transcriber MODEL and the whisper ggml-base model file.
 const ENGINE_LABELS: Record<TranscriptionEngine, string> = {
   apple: 'Apple Speech (on-device)',
-  whisper: 'Whisper base.en (on-device)',
+  whisper: 'Whisper base (on-device)',
   openai: 'OpenAI gpt-4o-mini-transcribe (cloud)',
 };
 

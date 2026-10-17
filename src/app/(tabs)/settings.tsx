@@ -7,9 +7,10 @@ import { Snackbar } from '@/components/snackbar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useTranscribeLanguage } from '@/hooks/use-transcribe-language';
 import { useTranscribePreference } from '@/hooks/use-transcribe-preference';
 import { useWhisperModel } from '@/hooks/use-whisper-model';
-import type { TranscriptionEngine } from '@/lib/domain';
+import { TRANSCRIBE_LANGUAGES, type TranscriptionEngine } from '@/lib/domain';
 import { getOpenAiApiKey } from '@/lib/env';
 
 const ENGINES: { key: TranscriptionEngine; label: string; hint: string }[] = [
@@ -24,6 +25,7 @@ const ENGINES: { key: TranscriptionEngine; label: string; hint: string }[] = [
 
 export default function SettingsScreen() {
   const { preference, setPreference } = useTranscribePreference();
+  const { language, setLanguage } = useTranscribeLanguage();
   const whisper = useWhisperModel();
   const [snackbar, setSnackbar] = useState<string | null>(null);
 
@@ -96,6 +98,36 @@ export default function SettingsScreen() {
           })}
         </ThemedView>
 
+        <ThemedView style={styles.section}>
+          <ThemedText type="smallBold" themeColor="textSecondary">
+            LANGUAGE
+          </ThemedText>
+          <View style={styles.languageRow}>
+            {TRANSCRIBE_LANGUAGES.map((option) => {
+              const selected = language === option.tag;
+              return (
+                <Pressable
+                  key={option.tag}
+                  testID={`language-${option.tag}`}
+                  accessibilityState={{ selected }}
+                  onPress={() => setLanguage(option.tag)}>
+                  <ThemedView
+                    type={selected ? 'backgroundSelected' : 'backgroundElement'}
+                    style={styles.languageChip}>
+                    <ThemedText type="default">
+                      {selected ? '✓ ' : ''}
+                      {option.label}
+                    </ThemedText>
+                  </ThemedView>
+                </Pressable>
+              );
+            })}
+          </View>
+          <ThemedText type="small" themeColor="textSecondary">
+            The language spoken in your recordings. All three engines use it.
+          </ThemedText>
+        </ThemedView>
+
         <ThemedView style={styles.section} testID="whisper-model-section">
           <ThemedText type="smallBold" themeColor="textSecondary">
             WHISPER MODEL
@@ -110,7 +142,7 @@ export default function SettingsScreen() {
           {whisper.status === 'not-downloaded' && (
             <View style={styles.modelRow}>
               <ThemedText type="small" themeColor="textSecondary">
-                Not downloaded (about 57 MB, one time)
+                Not downloaded (about 148 MB, one time)
               </ThemedText>
               <Button testID="whisper-download" label="Download" onPress={whisper.download} />
             </View>
@@ -186,5 +218,15 @@ const styles = StyleSheet.create({
   modelRow: {
     gap: Spacing.two,
     alignItems: 'flex-start',
+  },
+  languageRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  languageChip: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Spacing.three,
   },
 });

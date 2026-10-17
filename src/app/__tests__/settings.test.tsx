@@ -60,6 +60,29 @@ describe('SettingsScreen transcription engine', () => {
   });
 });
 
+describe('SettingsScreen language', () => {
+  it('lists the three languages and defaults to English', async () => {
+    await render(<SettingsScreen />);
+
+    expect(screen.getByTestId('language-en-US')).toBeTruthy();
+    expect(screen.getByTestId('language-es-MX')).toBeTruthy();
+    expect(screen.getByTestId('language-ja-JP')).toBeTruthy();
+    expect(await screen.findByText('✓ English')).toBeTruthy();
+  });
+
+  it('persists the chosen language', async () => {
+    await render(<SettingsScreen />);
+    await screen.findByText('✓ English');
+
+    await fireEvent.press(screen.getByTestId('language-ja-JP'));
+
+    expect(await screen.findByText('✓ 日本語')).toBeTruthy();
+    await waitFor(async () =>
+      expect(await AsyncStorage.getItem('transcribe-language')).toBe('ja-JP'),
+    );
+  });
+});
+
 describe('SettingsScreen engine hints', () => {
   it('warns on the openai row when the build has no API key', async () => {
     // Jest runs without EXPO_PUBLIC_OPENAI_API_KEY, mirroring a keyless build.

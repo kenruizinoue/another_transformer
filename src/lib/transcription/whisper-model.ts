@@ -8,9 +8,10 @@ export interface ModelFiles {
   remove(path: string): Promise<void>;
 }
 
-// ggml base English model (~57 MB), enough for on-device speech.
+// ggml base multilingual model (about 148 MB): English, Spanish, Japanese and
+// the rest of Whisper's languages on device. base.en was 57 MB but English only.
 export const WHISPER_MODEL_URL =
-  'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin';
+  'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin';
 
 /**
  * Manages the on-device Whisper model file: whether it is present, downloading

@@ -14,6 +14,8 @@ function engineOrder(preferred: TranscriptionEngine): TranscriptionEngine[] {
 export type TranscriptionRouterDeps = {
   adapters: Record<TranscriptionEngine, Transcriber>;
   getPreference: () => Promise<TranscriptionEngine>;
+  /** Language of the recordings; used when a call does not set one. */
+  getLanguage?: () => Promise<string>;
 };
 
 /**
@@ -27,8 +29,10 @@ export function createTranscriptionRouter(deps: TranscriptionRouterDeps) {
       // Collect per-engine failure reasons so a total failure is diagnosable
       // even in release builds with no console.
       const notes: string[] = [];
+      const language = options?.language ?? (await deps.getLanguage?.());
       const trackedOptions: TranscribeOptions = {
         ...options,
+        ...(language ? { language } : {}),
         onDiagnostic: (engine, detail) => {
           notes.push(`${engine}: ${detail}`);
           options?.onDiagnostic?.(engine, detail);

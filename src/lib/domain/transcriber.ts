@@ -6,6 +6,15 @@
 
 export type TranscriptionEngine = 'apple' | 'whisper' | 'openai';
 
+/** Languages the app transcribes, as BCP-47 tags every engine understands. */
+export type TranscribeLanguage = 'en-US' | 'es-MX' | 'ja-JP';
+
+export const TRANSCRIBE_LANGUAGES: { tag: TranscribeLanguage; label: string }[] = [
+  { tag: 'en-US', label: 'English' },
+  { tag: 'es-MX', label: 'Español' },
+  { tag: 'ja-JP', label: '日本語' },
+];
+
 export type TranscribeOptions = {
   /** BCP-47 language tag, e.g. "en-US". */
   language?: string;

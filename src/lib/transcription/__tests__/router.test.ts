@@ -21,6 +21,46 @@ function makeRouter(
 }
 
 describe('createTranscriptionRouter', () => {
+  it('passes the stored language to the engine when the call sets none', async () => {
+    const adapters = {
+      apple: adapter('apple', { text: 'hola' }),
+      whisper: adapter('whisper'),
+      openai: adapter('openai'),
+    };
+    const router = createTranscriptionRouter({
+      adapters,
+      getPreference: async () => 'apple',
+      getLanguage: async () => 'es-MX',
+    });
+
+    await router.transcribe('file:///a.wav');
+
+    expect(adapters.apple.transcribe).toHaveBeenCalledWith(
+      'file:///a.wav',
+      expect.objectContaining({ language: 'es-MX' }),
+    );
+  });
+
+  it('keeps a language the call sets over the stored one', async () => {
+    const adapters = {
+      apple: adapter('apple', { text: 'hello' }),
+      whisper: adapter('whisper'),
+      openai: adapter('openai'),
+    };
+    const router = createTranscriptionRouter({
+      adapters,
+      getPreference: async () => 'apple',
+      getLanguage: async () => 'es-MX',
+    });
+
+    await router.transcribe('file:///a.wav', { language: 'ja-JP' });
+
+    expect(adapters.apple.transcribe).toHaveBeenCalledWith(
+      'file:///a.wav',
+      expect.objectContaining({ language: 'ja-JP' }),
+    );
+  });
+
   it('uses the preferred engine when it succeeds', async () => {
     const adapters = {
       apple: adapter('apple', { text: 'from apple' }),

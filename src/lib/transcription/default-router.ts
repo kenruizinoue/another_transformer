@@ -1,6 +1,6 @@
 import { appleTranscriber } from './apple-transcriber';
 import { openaiTranscriber } from './openai-transcriber';
-import { getTranscribePreference } from './preference';
+import { getTranscribeLanguage, getTranscribePreference } from './preference';
 import { createTranscriptionRouter } from './router';
 import { whisperModel } from './whisper-model-instance';
 import { createWhisperTranscriber } from './whisper-transcriber';
@@ -13,4 +13,5 @@ export const defaultRouter = createTranscriptionRouter({
     openai: openaiTranscriber,
   },
   getPreference: getTranscribePreference,
+  getLanguage: getTranscribeLanguage,
 });

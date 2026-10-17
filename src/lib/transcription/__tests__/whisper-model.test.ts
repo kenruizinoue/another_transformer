@@ -3,7 +3,7 @@ import { WhisperModel } from '../whisper-model';
 
 function makeFiles(overrides: Partial<ModelFiles> = {}): ModelFiles {
   return {
-    modelPath: 'file:///doc/whisper/ggml-base.en.bin',
+    modelPath: 'file:///doc/whisper/ggml-base.bin',
     exists: jest.fn().mockResolvedValue(false),
     download: jest.fn().mockResolvedValue(true),
     remove: jest.fn().mockResolvedValue(undefined),
