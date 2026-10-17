@@ -1,3 +1,9 @@
+import * as FileSystem from 'expo-file-system/legacy';
+
+import { getOpenAiApiKey } from '@/lib/env';
+
+import { openaiTranscriber } from '../openai-transcriber';
+
 jest.mock('@/lib/env', () => ({ getOpenAiApiKey: jest.fn() }));
 
 // Built inside the factory because ES imports hoist above outer consts; plain
@@ -15,7 +21,7 @@ jest.mock('expo-file-system/legacy', () => {
     __esModule: true,
     FileSystemUploadType: { MULTIPART: 'multipart' },
     createUploadTask: jest.fn(function () {
-      // eslint-disable-next-line prefer-rest-params
+       
       state.lastArgs = Array.prototype.slice.call(arguments);
       return {
         uploadAsync: jest.fn(function () {
@@ -36,12 +42,6 @@ jest.mock('expo-file-system/legacy', () => {
     _state: state,
   };
 });
-
-import * as FileSystem from 'expo-file-system/legacy';
-
-import { getOpenAiApiKey } from '@/lib/env';
-
-import { openaiTranscriber } from '../openai-transcriber';
 
 const mockGetKey = getOpenAiApiKey as jest.Mock;
 const uploader = FileSystem as unknown as {

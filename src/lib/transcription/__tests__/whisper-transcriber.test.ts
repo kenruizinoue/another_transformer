@@ -1,9 +1,9 @@
-jest.mock('whisper.rn', () => ({ __esModule: true, initWhisper: jest.fn() }));
-
 import { initWhisper } from 'whisper.rn';
 
 import { createWhisperTranscriber } from '../whisper-transcriber';
 import type { WhisperModel } from '../whisper-model';
+
+jest.mock('whisper.rn', () => ({ __esModule: true, initWhisper: jest.fn() }));
 
 const mockInit = initWhisper as jest.Mock;
 

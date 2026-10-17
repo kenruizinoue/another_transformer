@@ -1,8 +1,15 @@
 // The shared Whisper model instance is replaced with one over in-memory fake
 // files so the Settings screen can be driven without a file system. Built
 // inside the factory because ES imports hoist above outer consts.
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+
+import * as instance from '@/lib/transcription/whisper-model-instance';
+
+import SettingsScreen from '../(tabs)/settings';
+
 jest.mock('@/lib/transcription/whisper-model-instance', () => {
-  const { WhisperModel } = require('@/lib/transcription/whisper-model');
+  const { WhisperModel } = jest.requireActual('@/lib/transcription/whisper-model');
   const state = { present: false };
   const files = {
     modelPath: 'file:///doc/whisper/model.bin',
@@ -17,13 +24,6 @@ jest.mock('@/lib/transcription/whisper-model-instance', () => {
   };
   return { whisperModel: new WhisperModel(files), _state: state };
 });
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-
-import * as instance from '@/lib/transcription/whisper-model-instance';
-
-import SettingsScreen from '../(tabs)/settings';
 
 const modelState = (instance as unknown as { _state: { present: boolean } })._state;
 

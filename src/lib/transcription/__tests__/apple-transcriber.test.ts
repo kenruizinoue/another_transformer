@@ -1,5 +1,10 @@
 // The mock module is built inside the factory because ES imports hoist above any
 // outer const, which would otherwise be read before initialization.
+import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
+import { Platform } from 'react-native';
+
+import { appleTranscriber } from '../apple-transcriber';
+
 jest.mock('expo-speech-recognition', () => {
   const listeners: Record<string, (event?: unknown) => void> = {};
   const module = {
@@ -15,11 +20,6 @@ jest.mock('expo-speech-recognition', () => {
   };
   return { __esModule: true, ExpoSpeechRecognitionModule: module };
 });
-
-import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
-import { Platform } from 'react-native';
-
-import { appleTranscriber } from '../apple-transcriber';
 
 const mod = ExpoSpeechRecognitionModule as unknown as {
   getPermissionsAsync: jest.Mock;

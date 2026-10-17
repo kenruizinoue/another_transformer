@@ -12,7 +12,7 @@ export function useTranscribePreference() {
 
   useEffect(() => {
     // Load the stored preference once on mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     getTranscribePreference().then(setLocal);
   }, []);
 
