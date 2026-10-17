@@ -49,7 +49,7 @@ EAS or local dev build, not Expo Go.
   and updating this file's status, then pausing for review.
 - No em dashes anywhere.
 - No secret keys in git. `.env` is gitignored; `.env.example` is committed.
-- Tickets are numbered T1..Tn for reference by Prompt 3.
+- Tickets are numbered T1..Tn.
 
 ## Verification commands
 
@@ -809,6 +809,41 @@ Acceptance criteria:
 
 ---
 
+## Phase 10 - Publish
+
+Everything needed to open the repository and write about it.
+
+### Ticket 33 - Own license, name and icon
+
+- Replace the Expo template LICENSE with MIT in the author's name.
+- Remove template leftovers (reset script, React and Expo logos, unused tab icons).
+- Display name "Another Transformer" in app.json, permission prompts and About.
+- Own icon set (iOS, favicon, Android adaptive layers, splash) rendered from one
+  HTML source on the AnotherSystems navy.
+
+### Ticket 34 - Spanish and Japanese transcription
+
+- Language preference (en-US, es-MX, ja-JP) persisted next to the engine choice,
+  with chips in Settings.
+- Router fills the stored language into every transcription; all engines use it.
+- Whisper switches to the multilingual `ggml-base` model (about 148 MB); the old
+  `base.en` file is removed when found.
+- Tests: preference, router (stored language, explicit language wins), Settings.
+
+### Ticket 35 - Repository hygiene and docs
+
+- Lint warnings cleared.
+- Internal prompt files removed; `standards/` and this plan stay as the record of
+  how the app was built.
+- README rewritten: engines, setup, verification, layout, benchmark.
+- `bench/`: benchmark protocol and word error rate tool (`npm run bench:wer`).
+
+### Ticket 36 - Device checks (user)
+
+- Screenshots and a short screen recording for the write-up.
+- Run `.maestro/transcribe-flow.yaml` on the phone and mark T23 fully done.
+- Record the benchmark samples and fill `bench/README.md`.
+
 ## Status
 
 | Ticket | Phase | Status |
@@ -835,7 +870,7 @@ Acceptance criteria:
 | T20 Copy to clipboard | 5 | Done |
 | T21 Export to PDF | 5 | Done |
 | T22 CI for Phase 5 | 5 | Done |
-| T23 Maestro end-to-end flow | 6 | Done (passes on simulator; transcribe flow pending device run) |
+| T23 Maestro end-to-end flow | 6 | Done (passes on simulator; transcribe flow pending device run, see T36) |
 | T24 Local-time timestamps | 7 | Done |
 | T25 Shared button and themed accents | 7 | Done |
 | T26 Slim the recording detail screen | 7 | Done |
@@ -845,3 +880,7 @@ Acceptance criteria:
 | T30 Recorder gateway | 9 | Done |
 | T31 Player gateway | 9 | Done |
 | T32 CI for Phase 9 | 9 | Done |
+| T33 Own license, name and icon | 10 | Done |
+| T34 Spanish and Japanese transcription | 10 | Done |
+| T35 Repository hygiene and docs | 10 | Done |
+| T36 Device checks (user) | 10 | Pending |
