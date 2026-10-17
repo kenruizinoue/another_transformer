@@ -32,6 +32,6 @@ describe('app shell', () => {
     await renderWithStore(<SettingsScreen />);
 
     expect(screen.getByText('Settings')).toBeTruthy();
-    expect(screen.getByText('another_transformer')).toBeTruthy();
+    expect(screen.getByText('Another Transformer')).toBeTruthy();
   });
 });

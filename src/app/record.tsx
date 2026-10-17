@@ -22,7 +22,7 @@ export default function RecordScreen() {
       <Centered testID="record-denied">
         <ThemedText type="subtitle">Microphone off</ThemedText>
         <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
-          another_transformer needs microphone access to record. Enable it in
+          Another Transformer needs microphone access to record. Enable it in
           Settings.
         </ThemedText>
         <Button

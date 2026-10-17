@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "another_transformer",
+    "name": "Another Transformer",
     "slug": "another_transformer",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,7 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSSpeechRecognitionUsageDescription": "Allow another_transformer to use speech recognition to transcribe your recordings on device.",
+        "NSSpeechRecognitionUsageDescription": "Allow Another Transformer to use speech recognition to transcribe your recordings on device.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone."
       },
       "bundleIdentifier": "com.kenruizinoue.another-transformer"
@@ -49,13 +49,13 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow another_transformer to access your microphone to record audio."
+          "microphonePermission": "Allow Another Transformer to access your microphone to record audio."
         }
       ],
       [
         "expo-speech-recognition",
         {
-          "speechRecognitionPermission": "Allow another_transformer to use speech recognition to transcribe your recordings on device."
+          "speechRecognitionPermission": "Allow Another Transformer to use speech recognition to transcribe your recordings on device."
         }
       ],
       "expo-sharing"

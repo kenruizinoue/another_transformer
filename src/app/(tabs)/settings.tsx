@@ -150,7 +150,7 @@ export default function SettingsScreen() {
           <ThemedText type="smallBold" themeColor="textSecondary">
             ABOUT
           </ThemedText>
-          <ThemedText type="default">another_transformer</ThemedText>
+          <ThemedText type="default">Another Transformer</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Record audio, even while your iPhone is locked, then transcribe it to
             text you can copy or export as a PDF.
