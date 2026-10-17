@@ -58,7 +58,8 @@
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
     "e2e": "maestro test .maestro/",
-    "check:boundaries": "node scripts/check-boundaries.js"
+    "check:boundaries": "node scripts/check-boundaries.js",
+    "bench:wer": "node bench/wer.mjs"
   },
   "private": true
 }
