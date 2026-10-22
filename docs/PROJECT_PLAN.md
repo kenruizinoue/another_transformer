@@ -844,6 +844,33 @@ Everything needed to open the repository and write about it.
 - Run `.maestro/transcribe-flow.yaml` on the phone and mark T23 fully done.
 - Record the benchmark samples and fill `bench/README.md`.
 
+## Phase 11 - Design pass
+
+A UI audit after the first device run found layout and interaction problems:
+buttons pinned to the left in centered layouts, black labels on blue in light
+mode, buttons under the 44 point touch target, a Settings screen that could
+not scroll, deletes with no confirmation, a sheet that could be swiped away
+mid recording (losing the take), a "(tabs)" back button label and a flat
+detail screen.
+
+### Ticket 37 - UI audit fixes and a livelier player
+
+- Button: no built in alignment, 44 point minimum, white label on filled
+  accents, optional SF Symbol icon, gray and tinted red variants.
+- Record: shutter style control with a pulse, live input level bars from the
+  recorder's metering, status pill, and no swipe to dismiss while recording.
+- Recording detail: title edits in place and saves when editing ends, a player
+  card whose waveform (read from the WAV file) is also the seek bar, 5 second
+  skips, a transcript card that says which engine and language will run, and a
+  confirmed delete. The back button is a plain chevron.
+- Settings: one scroll view, grouped cards, radio rows with a checkmark, a
+  segmented language picker, a download progress bar and a confirmed model
+  delete.
+- Home: rows with an icon, meta line and chevron; a spinner only on the first
+  load, so returning to the list does not flash.
+- Tests first for each behavior (wavPeaks, useWaveform, live levels, metering,
+  confirms, rename on end editing, radio state, scroll container).
+
 ## Status
 
 | Ticket | Phase | Status |
@@ -884,3 +911,4 @@ Everything needed to open the repository and write about it.
 | T34 Spanish and Japanese transcription | 10 | Done |
 | T35 Repository hygiene and docs | 10 | Done |
 | T36 Device checks (user) | 10 | Pending |
+| T37 UI audit fixes and a livelier player | 11 | Done (reviewed on device) |

@@ -12,4 +12,6 @@ export interface Recorder {
   start(): void;
   /** Stop capturing and resolve the recorded file uri, or null when none. */
   stop(): Promise<string | null>;
+  /** How loud the input is right now, from 0 to 1, or null when unknown. */
+  level(): number | null;
 }

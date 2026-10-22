@@ -14,6 +14,7 @@ export const Colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
+    separator: '#E0E1E6',
   },
   dark: {
     text: '#ffffff',
@@ -21,6 +22,7 @@ export const Colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
+    separator: '#2E3135',
   },
 } as const;
 
@@ -68,4 +70,19 @@ export const MaxContentWidth = 800;
 export const Accent = {
   primary: '#3c87f7',
   danger: '#e5484d',
+} as const;
+
+/** Label color on a filled accent; white reads on both accents in both modes. */
+export const OnAccent = '#ffffff';
+
+/** The accents at 15% opacity, for tinted backgrounds behind accent content. */
+export const AccentTint = {
+  primary: '#3c87f726',
+  danger: '#e5484d26',
+} as const;
+
+export const Radius = {
+  card: 20,
+  control: 14,
+  pill: 999,
 } as const;

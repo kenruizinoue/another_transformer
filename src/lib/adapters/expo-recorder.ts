@@ -6,6 +6,7 @@ import {
 import { useMemo } from 'react';
 
 import { configureRecordingAudioSession } from '@/lib/audio/audio-session';
+import { meteringToLevel } from '@/lib/audio/metering';
 import { WAV_16K_MONO } from '@/lib/audio/recording-options';
 import type { Recorder, RecorderPermission } from '@/lib/domain';
 
@@ -39,6 +40,10 @@ export function useExpoRecorder(): Recorder {
       async stop() {
         await recorder.stop();
         return recorder.uri;
+      },
+      level() {
+        const decibels = recorder.getStatus().metering;
+        return typeof decibels === 'number' ? meteringToLevel(decibels) : null;
       },
     }),
     [recorder],

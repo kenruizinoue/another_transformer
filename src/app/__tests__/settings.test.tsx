@@ -2,7 +2,8 @@
 // files so the Settings screen can be driven without a file system. Built
 // inside the factory because ES imports hoist above outer consts.
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { Alert, type AlertButton } from 'react-native';
 
 import * as instance from '@/lib/transcription/whisper-model-instance';
 
@@ -43,17 +44,17 @@ describe('SettingsScreen transcription engine', () => {
     expect(screen.getByTestId('engine-whisper')).toBeTruthy();
     expect(screen.getByTestId('engine-openai')).toBeTruthy();
 
-    // A leading check mark marks the selected engine.
-    expect(await screen.findByText('✓ On-device (Apple)')).toBeTruthy();
+    // The selected engine is the checked radio row.
+    await waitFor(() => expect(screen.getByTestId('engine-apple')).toBeChecked());
   });
 
   it('persists the chosen engine', async () => {
     await render(<SettingsScreen />);
-    await screen.findByText('✓ On-device (Apple)');
+    await waitFor(() => expect(screen.getByTestId('engine-apple')).toBeChecked());
 
     await fireEvent.press(screen.getByTestId('engine-openai'));
 
-    expect(await screen.findByText('✓ Cloud (OpenAI)')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('engine-openai')).toBeChecked());
     await waitFor(async () =>
       expect(await AsyncStorage.getItem('transcribe-engine')).toBe('openai'),
     );
@@ -67,16 +68,16 @@ describe('SettingsScreen language', () => {
     expect(screen.getByTestId('language-en-US')).toBeTruthy();
     expect(screen.getByTestId('language-es-MX')).toBeTruthy();
     expect(screen.getByTestId('language-ja-JP')).toBeTruthy();
-    expect(await screen.findByText('✓ English')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('language-en-US')).toBeChecked());
   });
 
   it('persists the chosen language', async () => {
     await render(<SettingsScreen />);
-    await screen.findByText('✓ English');
+    await waitFor(() => expect(screen.getByTestId('language-en-US')).toBeChecked());
 
     await fireEvent.press(screen.getByTestId('language-ja-JP'));
 
-    expect(await screen.findByText('✓ 日本語')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('language-ja-JP')).toBeChecked());
     await waitFor(async () =>
       expect(await AsyncStorage.getItem('transcribe-language')).toBe('ja-JP'),
     );
@@ -93,18 +94,18 @@ describe('SettingsScreen engine hints', () => {
 
   it('shows a snackbar when selecting cloud without a baked key, but still selects it', async () => {
     await render(<SettingsScreen />);
-    await screen.findByText('✓ On-device (Apple)');
+    await waitFor(() => expect(screen.getByTestId('engine-apple')).toBeChecked());
 
     await fireEvent.press(screen.getByTestId('engine-openai'));
 
     expect(await screen.findByTestId('snackbar')).toBeTruthy();
     expect(screen.getByText(/No API key was baked into this build/)).toBeTruthy();
-    expect(await screen.findByText('✓ Cloud (OpenAI)')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('engine-openai')).toBeChecked());
   });
 
   it('selecting apple shows no snackbar', async () => {
     await render(<SettingsScreen />);
-    await screen.findByText('✓ On-device (Apple)');
+    await waitFor(() => expect(screen.getByTestId('engine-apple')).toBeChecked());
 
     await fireEvent.press(screen.getByTestId('engine-apple'));
 
@@ -113,14 +114,14 @@ describe('SettingsScreen engine hints', () => {
 
   it('blocks selecting whisper while the model is missing and explains why', async () => {
     await render(<SettingsScreen />);
-    await screen.findByText('✓ On-device (Apple)');
+    await waitFor(() => expect(screen.getByTestId('engine-apple')).toBeChecked());
 
     await fireEvent.press(screen.getByTestId('engine-whisper'));
 
     expect(await screen.findByTestId('snackbar')).toBeTruthy();
     expect(screen.getByText(/Download the Whisper model below first/)).toBeTruthy();
     // Selection did not change.
-    expect(screen.getByText('✓ On-device (Apple)')).toBeTruthy();
+    expect(screen.getByTestId('engine-apple')).toBeChecked();
     expect(await AsyncStorage.getItem('transcribe-engine')).toBeNull();
   });
 
@@ -131,7 +132,7 @@ describe('SettingsScreen engine hints', () => {
 
     await fireEvent.press(screen.getByTestId('engine-whisper'));
 
-    expect(await screen.findByText('✓ On-device (Whisper)')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('engine-whisper')).toBeChecked());
     expect(await AsyncStorage.getItem('transcribe-engine')).toBe('whisper');
   });
 });
@@ -159,8 +160,44 @@ describe('SettingsScreen whisper model', () => {
     await render(<SettingsScreen />);
     await screen.findByTestId('whisper-ready');
 
+    const alert = jest.spyOn(Alert, 'alert');
     await fireEvent.press(screen.getByTestId('whisper-delete'));
 
+    // Deleting asks first; nothing is removed until the destructive choice.
+    expect(screen.getByTestId('whisper-ready')).toBeTruthy();
+    const buttons = alert.mock.calls[0][2] as AlertButton[];
+    await act(async () => buttons.find((b) => b.style === 'destructive')?.onPress?.());
+
     expect(await screen.findByTestId('whisper-download')).toBeTruthy();
+  });
+
+  it('shows download progress as a bar', async () => {
+    await render(<SettingsScreen />);
+    await screen.findByTestId('whisper-download');
+    // The fake download never resolves, so the screen stays mid download.
+    const download = jest
+      .spyOn(instance.whisperModel, 'ensureReady')
+      .mockImplementation(async (onProgress) => {
+        onProgress?.(0.4);
+        return new Promise<boolean>(() => {});
+      });
+
+    // Not awaited: the press handler waits on the download, which never ends.
+    void fireEvent.press(screen.getByTestId('whisper-download'));
+
+    expect(await screen.findByTestId('whisper-progress')).toHaveTextContent('Downloading 40%');
+    expect(screen.getByTestId('whisper-progress-bar')).toHaveStyle({ width: '40%' });
+    download.mockRestore();
+  });
+});
+
+describe('SettingsScreen layout', () => {
+  it('puts every section in one scroll view so it never clips as it grows', async () => {
+    await render(<SettingsScreen />);
+
+    const scroll = screen.getByTestId('settings-scroll');
+    expect(within(scroll).getByTestId('engine-apple')).toBeTruthy();
+    expect(within(scroll).getByTestId('whisper-model-section')).toBeTruthy();
+    expect(within(scroll).getByText('Another Transformer')).toBeTruthy();
   });
 });

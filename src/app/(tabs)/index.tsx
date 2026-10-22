@@ -1,12 +1,13 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
 import { RecordingRow } from '@/components/recording-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Spacing } from '@/constants/theme';
+import { Accent, AccentTint, BottomTabInset, Spacing } from '@/constants/theme';
 import { useRecordings } from '@/hooks/use-recordings';
 
 export default function RecordingsScreen() {
@@ -41,12 +42,15 @@ export default function RecordingsScreen() {
 
         {status === 'loaded' && recordings.length === 0 && (
           <ThemedView style={styles.centered} testID="recordings-empty">
+            <View style={styles.emptyBadge}>
+              <Icon name="waveform" size={36} color={Accent.primary} />
+            </View>
             <ThemedText type="default" style={styles.emptyTitle}>
               No recordings yet
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptyHint}>
-              Record audio to get started. Your recordings will appear here, ready to
-              play back and transcribe.
+              Tap Record to capture a meeting, a lecture or an idea. Then play it back and turn
+              it into text.
             </ThemedText>
           </ThemedView>
         )}
@@ -69,6 +73,8 @@ export default function RecordingsScreen() {
         <Button
           testID="new-recording"
           label="Record"
+          icon="mic.fill"
+          size="large"
           variant="danger"
           onPress={() => router.push('/record')}
           style={[styles.recordButton, { marginBottom: tabClearance }]}
@@ -96,8 +102,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.two,
   },
+  emptyBadge: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: AccentTint.primary,
+    marginBottom: Spacing.two,
+  },
   emptyTitle: {
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
   },
   emptyHint: {
     textAlign: 'center',
@@ -109,7 +125,6 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     alignSelf: 'center',
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.six,
+    marginTop: Spacing.three,
   },
 });

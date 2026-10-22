@@ -5,7 +5,7 @@ import type { Recorder, Recording, RecordingStore } from '@/lib/domain';
 import { RecorderProvider } from '@/lib/recorder-context';
 import { makeFakeRecorder } from '@/test-utils/store';
 
-import { useRecorder } from '../use-recorder';
+import { LEVEL_INTERVAL_MS, useRecorder } from '../use-recorder';
 
 function makeStore(): { store: RecordingStore; save: jest.Mock } {
   const saved: Recording = {
@@ -55,6 +55,26 @@ describe('useRecorder', () => {
     expect(save).toHaveBeenCalledWith({ fileUri: 'file:///tmp/rec.wav', durationMs: 5000 });
     expect(saved).toMatchObject({ id: 'r1' });
     expect(result.current.isRecording).toBe(false);
+  });
+
+  it('samples the input level while recording, for the live bars', async () => {
+    jest.useFakeTimers();
+    const recorder = makeFakeRecorder({ level: jest.fn().mockReturnValue(0.5) });
+    const { store } = makeStore();
+    const { result } = await renderHook(() => useRecorder(store), {
+      wrapper: withRecorder(recorder),
+    });
+    expect(result.current.levels).toEqual([]);
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(LEVEL_INTERVAL_MS * 3);
+    });
+
+    expect(result.current.levels).toEqual([0.5, 0.5, 0.5]);
+    jest.useRealTimers();
   });
 
   it('stop is a no-op when not recording', async () => {

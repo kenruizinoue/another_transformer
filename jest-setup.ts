@@ -22,6 +22,9 @@ jest.mock('expo-router', () => {
       navigate: jest.fn(),
     }),
     Redirect: () => null,
+    // Screens set native header options with <Stack.Screen options />; record
+    // the props so tests can assert them.
+    Stack: { Screen: jest.fn(() => null) },
     useLocalSearchParams: () => ({}),
     // Focus == mount in the test environment.
     useFocusEffect: (callback: () => void | (() => void)) => {

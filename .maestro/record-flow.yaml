@@ -21,7 +21,8 @@ appId: com.kenruizinoue.another-transformer
 - tapOn:
     id: "record-toggle"
 - extendedWaitUntil:
-    visible: "Stop"
+    visible:
+      id: "record-live"
     timeout: 5000
 # let it capture ~3 seconds of audio, then stop
 - extendedWaitUntil:

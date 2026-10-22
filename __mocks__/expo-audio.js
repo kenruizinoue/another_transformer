@@ -6,6 +6,7 @@ const recorder = {
   record: jest.fn(),
   stop: jest.fn().mockResolvedValue(undefined),
   pause: jest.fn(),
+  getStatus: jest.fn(() => ({})),
   uri: 'file:///tmp/recording.wav',
   currentTime: 0,
   isRecording: false,

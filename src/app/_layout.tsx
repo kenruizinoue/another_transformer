@@ -7,12 +7,17 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* The title names the back button target, never the "(tabs)" group. */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Recordings' }} />
         <Stack.Screen
           name="record"
-          options={{ presentation: 'modal', title: 'Record' }}
+          options={{ presentation: 'modal', title: 'New recording', headerShadowVisible: false }}
         />
-        <Stack.Screen name="recording/[id]" options={{ title: 'Recording' }} />
+        {/* The recording's own title heads the screen, so the bar only holds a back chevron. */}
+        <Stack.Screen
+          name="recording/[id]"
+          options={{ title: '', headerBackButtonDisplayMode: 'minimal', headerShadowVisible: false }}
+        />
       </Stack>
     </ThemeProvider>
   );

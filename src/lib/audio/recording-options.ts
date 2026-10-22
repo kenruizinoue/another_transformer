@@ -12,6 +12,8 @@ export const WAV_16K_MONO: RecordingOptions = {
   sampleRate: 16_000,
   numberOfChannels: 1,
   bitRate: 256_000,
+  // Live input level for the record screen bars; does not change the file.
+  isMeteringEnabled: true,
   ios: {
     ...RecordingPresets.HIGH_QUALITY.ios,
     extension: '.wav',

@@ -6,10 +6,11 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, push: jest.fn() }),
 }));
 
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { Alert, type AlertButton } from 'react-native';
 
 import {
   makeFakeRouter,
@@ -48,7 +49,8 @@ describe('RecordingDetailScreen', () => {
 
     await screen.findByTestId('detail-loaded');
     await fireEvent.changeText(screen.getByTestId('rename-input'), 'Team sync');
-    await fireEvent.press(screen.getByTestId('rename-save'));
+    // The title saves when editing ends, like Notes; no separate save button.
+    await fireEvent(screen.getByTestId('rename-input'), 'endEditing');
 
     await waitFor(() => expect(store.rename).toHaveBeenCalledWith('r1', 'Team sync'));
   });
@@ -59,20 +61,35 @@ describe('RecordingDetailScreen', () => {
 
     await screen.findByTestId('detail-loaded');
     await fireEvent.changeText(screen.getByTestId('rename-input'), '   ');
-    await fireEvent.press(screen.getByTestId('rename-save'));
+    await fireEvent(screen.getByTestId('rename-input'), 'endEditing');
 
     expect(store.rename).not.toHaveBeenCalled();
+    // The field puts the old title back instead of staying blank.
+    expect(screen.getByTestId('rename-input')).toHaveDisplayValue('Old title');
   });
 
-  it('deletes the recording and navigates back', async () => {
+  it('deletes the recording after confirming, then navigates back', async () => {
     const store = storeWithRecording();
+    const alert = jest.spyOn(Alert, 'alert');
     await renderWithProviders(<RecordingDetailScreen />, { store });
 
     await screen.findByTestId('detail-loaded');
     await fireEvent.press(screen.getByTestId('delete'));
+    expect(store.remove).not.toHaveBeenCalled();
+
+    const buttons = alert.mock.calls[0][2] as AlertButton[];
+    await act(async () => buttons.find((b) => b.style === 'destructive')?.onPress?.());
 
     await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
     expect(store.remove).toHaveBeenCalledWith('r1');
+  });
+
+  it('says which engine and language a transcription will use', async () => {
+    await renderWithProviders(<RecordingDetailScreen />, { store: storeWithRecording() });
+
+    expect(await screen.findByTestId('transcribe-hint')).toHaveTextContent(
+      'Apple Speech, English. Change in Settings.',
+    );
   });
 
   it('transcribes and shows the transcript, saving it to the store', async () => {

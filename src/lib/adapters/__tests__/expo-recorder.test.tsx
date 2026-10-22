@@ -35,6 +35,19 @@ describe('useExpoRecorder (adapter boundary)', () => {
     expect(uri).toBe('file:///tmp/recording.wav');
   });
 
+  it('turns the metering decibels into a level from 0 to 1', async () => {
+    const { result } = await renderHook(() => useExpoRecorder());
+
+    nativeRecorder.getStatus.mockReturnValueOnce({ metering: -30 });
+    expect(result.current.level()).toBe(0.5);
+    nativeRecorder.getStatus.mockReturnValueOnce({ metering: -160 });
+    expect(result.current.level()).toBe(0);
+    nativeRecorder.getStatus.mockReturnValueOnce({ metering: 3 });
+    expect(result.current.level()).toBe(1);
+    nativeRecorder.getStatus.mockReturnValueOnce({});
+    expect(result.current.level()).toBeNull();
+  });
+
   it('maps permission results to gateway statuses', async () => {
     const { result } = await renderHook(() => useExpoRecorder());
 

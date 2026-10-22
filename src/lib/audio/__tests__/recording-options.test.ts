@@ -9,6 +9,10 @@ describe('WAV_16K_MONO', () => {
     expect(WAV_16K_MONO.numberOfChannels).toBe(1);
   });
 
+  it('measures the input level, for the live bars on the record screen', () => {
+    expect(WAV_16K_MONO.isMeteringEnabled).toBe(true);
+  });
+
   it('records linear PCM WAV at 16 bit on iOS', () => {
     expect(WAV_16K_MONO.ios.extension).toBe('.wav');
     expect(WAV_16K_MONO.ios.outputFormat).toBe('lpcm');

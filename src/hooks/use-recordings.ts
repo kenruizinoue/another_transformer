@@ -22,7 +22,8 @@ export function useRecordings(): UseRecordings {
   const [recordings, setRecordings] = useState<Recording[]>([]);
 
   const load = useCallback(async () => {
-    setStatus('loading');
+    // Only the first load shows a spinner; a reload keeps the rows on screen.
+    setStatus((current) => (current === 'loaded' ? current : 'loading'));
     try {
       setRecordings(await store.list());
       setStatus('loaded');

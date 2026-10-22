@@ -3,6 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Recording, RecordingStore } from '@/lib/domain';
 import { useRecorderGateway } from '@/lib/recorder-context';
 
+/** How often the timer and the input level update while recording. */
+export const LEVEL_INTERVAL_MS = 100;
+// Enough samples to fill the live bars across the record screen.
+const MAX_LEVELS = 48;
+
 export type UseRecorderOptions = {
   /** Clock, injectable for deterministic tests. */
   now?: () => number;
@@ -11,6 +16,8 @@ export type UseRecorderOptions = {
 export type UseRecorder = {
   isRecording: boolean;
   elapsedMs: number;
+  /** Recent input levels from 0 to 1, oldest first, while recording. */
+  levels: number[];
   start: () => Promise<void>;
   /** Stops and saves, returning the saved recording, or null when discarded. */
   stop: () => Promise<Recording | null>;
@@ -26,6 +33,7 @@ export function useRecorder(store: RecordingStore, options: UseRecorderOptions =
   const recorder = useRecorderGateway();
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [levels, setLevels] = useState<number[]>([]);
   const startedAtRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -44,11 +52,14 @@ export function useRecorder(store: RecordingStore, options: UseRecorderOptions =
     recorder.start();
     startedAtRef.current = now();
     setElapsedMs(0);
+    setLevels([]);
     setIsRecording(true);
     clearTimer();
     timerRef.current = setInterval(() => {
       setElapsedMs(now() - startedAtRef.current);
-    }, 250);
+      const level = recorder.level() ?? 0;
+      setLevels((recent) => [...recent, level].slice(-MAX_LEVELS));
+    }, LEVEL_INTERVAL_MS);
   }, [clearTimer, isRecording, now, recorder]);
 
   const stop = useCallback(async (): Promise<Recording | null> => {
@@ -63,5 +74,5 @@ export function useRecorder(store: RecordingStore, options: UseRecorderOptions =
     return store.save({ fileUri: uri, durationMs });
   }, [clearTimer, isRecording, now, recorder, store]);
 
-  return { isRecording, elapsedMs, start, stop };
+  return { isRecording, elapsedMs, levels, start, stop };
 }

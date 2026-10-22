@@ -1,19 +1,32 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioPlayer } from '@/components/audio-player';
 import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { TranscriptSection } from '@/components/transcript-section';
+import { WAVEFORM_BARS } from '@/components/waveform';
 import { Spacing } from '@/constants/theme';
 import { usePlayback, type Playback } from '@/hooks/use-playback';
 import { useRecording } from '@/hooks/use-recording';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranscribe } from '@/hooks/use-transcribe';
-import type { Recording } from '@/lib/domain';
+import { useTranscribeLanguage } from '@/hooks/use-transcribe-language';
+import { useTranscribePreference } from '@/hooks/use-transcribe-preference';
+import { useWaveform } from '@/hooks/use-waveform';
+import { TRANSCRIBE_LANGUAGES, type Recording, type TranscriptionEngine } from '@/lib/domain';
+import { formatDuration } from '@/lib/utils/format-duration';
+import { formatTimestamp } from '@/lib/utils/recording-title';
+
+const ENGINE_NAMES: Record<TranscriptionEngine, string> = {
+  apple: 'Apple Speech',
+  whisper: 'Whisper',
+  openai: 'OpenAI',
+};
 
 export default function RecordingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,7 +42,7 @@ export default function RecordingDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+      <SafeAreaView edges={['bottom']} style={styles.container}>
         {status === 'loading' && (
           <ThemedView style={styles.centered} testID="detail-loading">
             <ActivityIndicator />
@@ -70,52 +83,86 @@ function DetailContent({
   onTranscribed: () => void;
 }) {
   const theme = useTheme();
-  const draftTitle = useRef(recording.title);
+  const [draft, setDraft] = useState(recording.title);
+  const peaks = useWaveform(recording.fileUri, WAVEFORM_BARS);
+  const { preference } = useTranscribePreference();
+  const { language } = useTranscribeLanguage();
   const { status: transcribeStatus, errorDetail, run: transcribe } = useTranscribe(onTranscribed);
+  const languageName = TRANSCRIBE_LANGUAGES.find((option) => option.tag === language)?.label ?? language;
+
+  // The title saves when editing ends, like a note title. A blank title is
+  // not allowed, so the field puts the stored one back.
+  const commitTitle = () => {
+    const title = draft.trim();
+    if (!title) {
+      setDraft(recording.title);
+    } else if (title !== recording.title) {
+      onRename(title);
+    }
+  };
+
+  const confirmDelete = () =>
+    Alert.alert(
+      'Delete this recording?',
+      'The audio and its transcript are removed from this phone. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: onDelete },
+      ],
+    );
 
   return (
-    <ScrollView contentContainerStyle={styles.content} testID="detail-loaded">
-      <TextInput
-        testID="rename-input"
-        defaultValue={recording.title}
-        onChangeText={(text) => {
-          draftTitle.current = text;
-        }}
-        style={[styles.titleInput, { color: theme.text, borderColor: theme.backgroundElement }]}
-        placeholder="Recording title"
-        placeholderTextColor={theme.textSecondary}
-      />
-      <Button
-        testID="rename-save"
-        label="Save name"
-        onPress={() => onRename(draftTitle.current)}
-      />
+    <ScrollView
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      testID="detail-loaded">
+      <View style={styles.titleBlock}>
+        <View style={styles.titleRow}>
+          <TextInput
+            testID="rename-input"
+            value={draft}
+            onChangeText={setDraft}
+            onEndEditing={commitTitle}
+            multiline
+            submitBehavior="blurAndSubmit"
+            returnKeyType="done"
+            style={[styles.titleInput, { color: theme.text }]}
+            placeholder="Recording title"
+            placeholderTextColor={theme.textSecondary}
+            accessibilityLabel="Recording title"
+          />
+          <Icon name="pencil" size={16} color={theme.textSecondary} />
+        </View>
+        <ThemedText type="small" themeColor="textSecondary">
+          {formatTimestamp(recording.createdAt)} · {formatDuration(recording.durationMs)}
+        </ThemedText>
+      </View>
 
       <AudioPlayer
         positionMs={playback.positionMs}
         durationMs={recording.durationMs || playback.durationMs}
+        isPlaying={playback.isPlaying}
+        peaks={peaks}
+        onToggle={playback.toggle}
         onSeek={playback.seekTo}
       />
-
-      <View style={styles.actionRow}>
-        <Button
-          testID="player-toggle"
-          label={playback.isPlaying ? 'Pause' : 'Play'}
-          onPress={playback.toggle}
-        />
-        <Button
-          testID="transcribe"
-          label={recording.transcript ? 'Transcribe again' : 'Transcribe'}
-          onPress={() => transcribe(recording)}
-          disabled={transcribeStatus === 'transcribing'}
-        />
-        <Button testID="delete" label="Delete" variant="danger" onPress={onDelete} />
-      </View>
 
       <TranscriptSection
         recording={recording}
         status={transcribeStatus}
         errorDetail={errorDetail}
+        hint={`${ENGINE_NAMES[preference]}, ${languageName}. Change in Settings.`}
+        onTranscribe={() => transcribe(recording)}
+      />
+
+      <Button
+        testID="delete"
+        label="Delete recording"
+        icon="trash"
+        variant="dangerTinted"
+        onPress={confirmDelete}
+        style={styles.delete}
       />
     </ScrollView>
   );
@@ -125,33 +172,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
-    gap: Spacing.three,
+    gap: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.six,
   },
-  actionRow: {
+  titleBlock: {
+    gap: Spacing.one,
+  },
+  titleRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    alignItems: 'center',
     gap: Spacing.two,
-    marginTop: Spacing.two,
   },
   titleInput: {
-    fontSize: 20,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderRadius: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
+    flex: 1,
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: '700',
+    padding: 0,
+  },
+  delete: {
+    alignSelf: 'center',
+    marginTop: Spacing.two,
   },
 });

@@ -55,6 +55,7 @@ export function makeFakeRecorder(overrides: Partial<Recorder> = {}): Recorder {
     prepare: jest.fn().mockResolvedValue(undefined),
     start: jest.fn(),
     stop: jest.fn().mockResolvedValue('file:///tmp/rec.wav'),
+    level: jest.fn().mockReturnValue(null),
     ...overrides,
   };
 }
