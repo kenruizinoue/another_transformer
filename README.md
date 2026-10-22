@@ -7,10 +7,20 @@ is locked. Transcribes English, Spanish and Japanese.
 
 Built with Expo SDK 57, TypeScript and expo-router. MIT licensed.
 
+<p align="center">
+  <img src="docs/screenshots/list.png" width="190" alt="The recordings list" />
+  <img src="docs/screenshots/record.png" width="190" alt="Recording, with live sound bars and a note that the phone can be locked" />
+  <img src="docs/screenshots/transcript.png" width="190" alt="A recording with its waveform as the seek bar and the transcript below" />
+  <img src="docs/screenshots/settings.png" width="190" alt="Settings: the engine, the language and the Whisper model" />
+</p>
+
 ## What it does
 
 - Record audio to a WAV file; recording survives the phone locking.
-- List saved recordings with title, date and duration; play back, rename, delete.
+- List saved recordings with title, date and duration; rename in place, delete
+  with a confirmation.
+- Play back with the recording's own waveform as the seek bar, and skip 5
+  seconds back or forward.
 - Transcribe a recording with the engine chosen in Settings, falling back to the
   next engine when one is unavailable or returns nothing:
 
@@ -26,6 +36,17 @@ Built with Expo SDK 57, TypeScript and expo-router. MIT licensed.
 
 The three engines sit behind one `Transcriber` interface, so the app, the
 router and the tests do not care which one produced the text.
+
+## Requirements
+
+- A Mac with Xcode and its iOS Simulator.
+- Node.js 22, the version this project is developed and tested on.
+- An iPhone, for the native engines. Expo Go cannot run the app.
+- An Apple ID to sign the build. A free one works, but the app stops opening
+  after 7 days and needs a reinstall; a paid Apple Developer account lasts a
+  year.
+- Optional: an OpenAI API key, for the cloud engine.
+- Optional: [Maestro](https://maestro.mobile.dev), for the end-to-end flows.
 
 ## Run it
 
@@ -45,10 +66,22 @@ commit `.env`; it is gitignored and only `.env.example` is tracked.
 The Whisper model is not bundled. Download it once from Settings; it is stored
 in the app's documents directory and can be deleted from the same screen.
 
+### Useful to know
+
+- `npx expo run:ios --device --configuration Release` builds a version that
+  runs without the Metro bundler, so it works away from your Mac.
+- With a free Apple ID, trust the developer once on the phone: Settings,
+  General, VPN & Device Management.
+- On-device Apple Speech may be unavailable on the Simulator. The app then
+  falls back to the next engine, so test transcription on a real iPhone.
+- Recordings and transcripts stay in the app's documents directory on the
+  phone. Only the OpenAI engine uploads audio, and only in a build with a key;
+  with a key, it is also the last fallback when the picked engine cannot run.
+
 ## Verify
 
 ```bash
-npm test                  # jest-expo + React Native Testing Library, 129 tests
+npm test                  # jest-expo + React Native Testing Library, 146 tests
 npm run typecheck         # tsc --noEmit
 npm run lint              # eslint-config-expo
 npm run check:boundaries  # native modules only under src/lib/adapters, lib/audio, lib/transcription
@@ -97,7 +130,7 @@ generated and gitignored.
 The app was planned and delivered ticket by ticket with an AI coding agent
 following the rules in `standards/`. `docs/PROJECT_PLAN.md` is the actual plan,
 with every ticket's scope, verification and status. The write-up is at
-[anothersystems.com/work](https://anothersystems.com/work).
+[anothersystems.com/work/another-transformer](https://anothersystems.com/work/another-transformer).
 
 ## License
 
